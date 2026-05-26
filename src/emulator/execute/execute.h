@@ -1,6 +1,6 @@
 #ifndef EXECUTE_H
 #define EXECUTE_H
-#include "processor.h"
+#include "../processor.h"
 
 extern int data_processing_immediate(
     CPU_state* state,
@@ -27,7 +27,7 @@ extern int dpi_wide_move(
     uint8_t rd
 );
 
-extern void data_processing_register(
+extern int data_processing_register(
     CPU_state* state,
     uint8_t sf, 
     uint8_t opc, 
@@ -37,7 +37,7 @@ extern void data_processing_register(
     uint8_t rn,
     uint8_t rd
 );
-extern void single_data_transfer(
+extern int single_data_transfer(
     CPU_state* state,
     uint8_t sf, 
     uint8_t u, 
@@ -46,14 +46,14 @@ extern void single_data_transfer(
     uint8_t xn, 
     uint8_t rt
 );
-extern void load_literal(
+extern int load_literal(
     CPU_state* state,
     uint8_t sf, 
     int32_t simm19,
     uint8_t rt
 );
 
-extern void branch(
+extern int branch(
     CPU_state* state,
     uint32_t operand
 );
