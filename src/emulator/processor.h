@@ -1,6 +1,6 @@
 #ifndef PROCESSOR_H
 #define PROCESSOR_H
-#include "types.h"
+#include "memory.h"
 
 typedef struct{
     bool N;
@@ -10,17 +10,15 @@ typedef struct{
 } PSTATE;
 
 typedef struct{
-    uint64_t registers[32];
+    uint64_t registers[31];
     uint64_t pc;
-    uint64_t z;
+    // uint64_t z; -- Perhaps unecessary. 
     PSTATE pstate;
     Sys_Memory* memory;
 } CPU_state;
 
-
+extern CPU_state state_init(Sys_Memory* memory);
 extern uint32_t instruction_fetch(CPU_state* state);
-
-extern void instruction_decode(CPU_state* state, uint32_t instruction);
-
+extern int instruction_decode(CPU_state* state, uint32_t instruction);
 
 #endif

@@ -4,29 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "execute.h"
-
-// static uint32_t mask_bits(
-//     uint32_t value,
-//     uint8_t start,
-//     uint8_t end
-// ) {
-//     uint8_t width = start - end + 1;
-
-//     return (value >> end)
-//            & ((1U << width) - 1);
-// }
-
-static uint32_t mask_instr_bits(uint32_t instruction, uint8_t start, uint8_t end){
-    uint8_t diff = start-end+1;
-    uint32_t shifted = (uint32_t)(instruction >> end);
-    uint32_t mask = (((uint32_t)1<<(diff))-1);
-    uint32_t res = shifted & mask;
-    return res;
-}
+#include "utils.h"
 
 //Define update flags
 int update_flags(CPU_state* state, uint64_t val1, uint64_t val2, uint64_t res, uint8_t sf, bool is_add) {
-    
     //check if regsiters are 32 or 64 bit
     //Mask is either 32 or 64 bit. 
     //Bitwise & with result will ignore the last 32 bits if registers are set to 32
