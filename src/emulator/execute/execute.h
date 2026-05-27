@@ -82,7 +82,4 @@ extern int branch(
     uint32_t operand
 );
 
-
-// and many more
-
 #endif

@@ -7,11 +7,14 @@
 #include "execute/execute.h"
 #include "utils.h"
 #define HALT 0x8a000000
-#define SIMM_19_MASK 0x3FFFF
-#define HALT_OK 0
-#define HALF_FAIL -1
+#define SIMM_19_MASK 0x40000
 
-typedef enum{DPI_Immediate = 4, DPI_Register = 5, BRANCH = 5} SWITCH;
+typedef enum{
+    DPI_Immediate = 4,
+     DPI_Register = 5, 
+     BRANCH = 5
+    } SWITCH;
+
 // Initialising CPU State
 CPU_state state_init(Sys_Memory* memory){
     PSTATE pstate = {false, false, false, false};
@@ -32,7 +35,7 @@ uint32_t instruction_fetch(CPU_state *state) {
 // N.b. instruction_decode does not modify state
 int instruction_decode(CPU_state *state, uint32_t instruction){
     if (instruction == HALT){
-       return HALT_OK; 
+       return DECODE_HALT; 
     }
     else if ( // Matching with op0 = 100x
          mask_instr_bits(instruction, 28 , 26 ) == DPI_Immediate 
@@ -87,9 +90,10 @@ int instruction_decode(CPU_state *state, uint32_t instruction){
     {
         uint32_t operand = mask_instr_bits(instruction, 25, 0);
         uint8_t type = mask_instr_bits(instruction, 31, 30);
+        // returns 1 if branched
         return branch(state, type, operand);
     }
         
     fprintf(stderr, "Cannot detect instruction 0x%08x\n", instruction);
-    return HALF_FAIL;
+    return DECODE_FAIL;
 } 
