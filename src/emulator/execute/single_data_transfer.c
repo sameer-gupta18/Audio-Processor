@@ -3,6 +3,7 @@
 #include "execute.h"
 #include "../utils.h"
 #include "execute_utils.h"
+#define LOAD 1
 
 uint64_t transfer_uo(CPU_state* state, uint8_t sf, uint16_t offset, uint8_t xn) {
     
@@ -103,5 +104,17 @@ int single_data_transfer(CPU_state* state, uint8_t sf, uint8_t u, uint8_t l, uin
     }
 
     load_store(state, l, transfer_address, rt, sf);
+    return EXIT_SUCCESS;
+}
+
+int load_literal(CPU_state* state, uint8_t sf, uint32_t simm19, uint8_t rt) {
+
+    //calculate address based on current pc and simm19
+    int64_t offset = (int32_t)simm19 * 4;
+    uint64_t addr = (uint64_t)(offset + state->pc);
+
+    //Pass LOAD cos literals only works with load
+    load_store(state, LOAD, addr, rt, sf);
+
     return EXIT_SUCCESS;
 }
