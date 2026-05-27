@@ -33,3 +33,8 @@ uint32_t load32(Sys_Memory *mem, uint64_t address) {
 
   return res;
 }
+
+
+extern int64_t sgx(uint64_t num, uint64_t mask){
+    return (num ^ mask) - mask;
+}

@@ -6,8 +6,12 @@
 #include <stdlib.h>
 #include "execute/execute.h"
 #include "utils.h"
+#define HALT 0x8a000000
+#define SIMM_19_MASK 0x3FFFF
+#define HALT_OK 0
+#define HALF_FAIL -1
 
-
+typedef enum{DPI_Immediate = 4, DPI_Register = 5, BRANCH = 5} SWITCH;
 // Initialising CPU State
 CPU_state state_init(Sys_Memory* memory){
     PSTATE pstate = {false, false, false, false};
@@ -27,9 +31,11 @@ uint32_t instruction_fetch(CPU_state *state) {
 
 // N.b. instruction_decode does not modify state
 int instruction_decode(CPU_state *state, uint32_t instruction){
-    
-    if ( // Matching with op0 = 100x
-         mask_instr_bits(instruction, 28 , 26 ) == 4 
+    if (instruction == HALT){
+       return HALT_OK; 
+    }
+    else if ( // Matching with op0 = 100x
+         mask_instr_bits(instruction, 28 , 26 ) == DPI_Immediate 
         )
     {  
         uint8_t sf = mask_instr_bits(instruction, 31 , 31 );
@@ -37,9 +43,9 @@ int instruction_decode(CPU_state *state, uint32_t instruction){
         uint8_t opi = mask_instr_bits(instruction, 25 , 23 );
         uint32_t operand = mask_instr_bits(instruction, 22, 5);
         uint8_t rd = mask_instr_bits(instruction, 4 , 0 );
-        data_processing_immediate(state,sf , opc, opi, operand, rd);
+        return data_processing_immediate(state,sf , opc, opi, operand, rd);
     } else if ( // Matching with op0 = x101
-        mask_instr_bits(instruction,27, 25) == 5 
+        mask_instr_bits(instruction,27, 25) == DPI_Register
     )
     { 
         uint8_t sf = mask_instr_bits(instruction, 31 , 31 );
@@ -49,7 +55,7 @@ int instruction_decode(CPU_state *state, uint32_t instruction){
         uint32_t operand = mask_instr_bits(instruction, 15, 10);
         uint8_t rn = mask_instr_bits(instruction, 9, 5);
         uint8_t rd = mask_instr_bits(instruction, 4, 0);
-        data_processing_register(state,sf , opc, m, opr, operand, rn, rd);
+        return data_processing_register(state,sf , opc, m, opr, operand, rn, rd);
     } else if( // Matching with 31 =1 & op0 = x1x0
         (mask_instr_bits(instruction, 31, 31)==1) && 
         (mask_instr_bits(instruction, 27, 27)==1) && 
@@ -63,7 +69,7 @@ int instruction_decode(CPU_state *state, uint32_t instruction){
         uint8_t xn = mask_instr_bits(instruction, 9, 5);;
         uint8_t rt = mask_instr_bits(instruction,4, 0);
 
-        single_data_transfer(state, sf, u, l, offset, xn, rt);
+        return single_data_transfer(state, sf, u, l, offset, xn, rt);
     } else if ( // Matching with 31 = 0 & op0 = x1x0
         (mask_instr_bits(instruction, 31, 31)==0) && 
         (mask_instr_bits(instruction, 27, 27)==1) && 
@@ -72,19 +78,18 @@ int instruction_decode(CPU_state *state, uint32_t instruction){
         uint8_t sf = mask_instr_bits(instruction, 30, 30);
         uint32_t simm19_u = mask_instr_bits(instruction, 23, 5);
         // Must sign-extend simm19
-        int32_t simm19 = (int32_t)(simm19_u << 13) >> 13;   
+        int64_t simm19 = sgx(simm19_u, SIMM_19_MASK); 
         uint8_t rt = mask_instr_bits(instruction, 4, 0);
-        load_literal(state,sf, simm19, rt);
+        return load_literal(state,sf, simm19, rt);
     } else if( // Matching with op0 = 101x
-        (mask_instr_bits(instruction,28, 26)==5) 
+        (mask_instr_bits(instruction,28, 26)==BRANCH) 
     )
     {
         uint32_t operand = mask_instr_bits(instruction, 25, 0);
-        branch(state, operand);
-    } else
-    { // Cannot match with any known instruction -- throw error.
-        fprintf(stderr, "Cannot detect instruction 0x%08x\n", instruction);
-        return -1;
+        uint8_t type = mask_instr_bits(instruction, 31, 30);
+        return branch(state, type, operand);
     }
-    return 0;
+        
+    fprintf(stderr, "Cannot detect instruction 0x%08x\n", instruction);
+    return HALF_FAIL;
 } 

@@ -78,6 +78,7 @@ extern int load_literal(
 
 extern int branch(
     CPU_state* state,
+    uint8_t type,
     uint32_t operand
 );
 
