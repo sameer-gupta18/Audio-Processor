@@ -7,23 +7,23 @@
 //Define arithmetic instructions
 int dpi_arithmetic(CPU_state* state, uint8_t sf, uint8_t opc, uint32_t operand, uint8_t rd) {
 
-    uint8_t sh = mask_instr_bits(operand, 18, 18);
-    uint16_t imm12 = mask_instr_bits(operand, 17, 6);
-    uint8_t rn = mask_instr_bits(operand, 5, 0);
+    uint8_t sh = mask_instr_bits(operand, 17, 17);
+    uint16_t imm12 = mask_instr_bits(operand, 16, 5);
+    uint8_t rn = mask_instr_bits(operand, 4, 0);
     uint32_t op2 = imm12;
 
     //If rd or rn = 31, encode stack pointer
-    if (rd == XZR || rn == XZR) {
-        //Implement stack
-        return DECODE_OK;
-    }
+    // if (rd == XZR || rn == XZR) {
+    //     //Implement stack
+    //     return DECODE_OK;
+    // }
 
     //If sh = 1, shift left by 12
     if (sh) {
         op2 <<= 12;
     }
 
-    uint64_t rn_val = state->registers[rn];
+    uint64_t rn_val = rn == XZR? 0: state->registers[rn];
     uint64_t result;
 
     switch (opc)
@@ -56,8 +56,9 @@ int dpi_arithmetic(CPU_state* state, uint8_t sf, uint8_t opc, uint32_t operand, 
         fprintf(stderr, "Invalid arithmetic operation");
         return DECODE_FAIL;
     }
-
-    state->registers[rd] = sf?result:(uint32_t)result;
+    if (rd != XZR){
+        state->registers[rd] = sf?result:(HALF_REG_MASK & result);
+    }
     return DECODE_OK;
 }
 
@@ -80,14 +81,17 @@ int dpi_wide_move(CPU_state* state, uint8_t sf, uint8_t opc, uint32_t operand, u
     switch (opc)
     {
     case 0:
+    //movn
         result = ~op;
         break;
     
     case 2:
+    //movz
         result = op;
         break;
 
     case 3:
+    //movk
         result = (old_val & ~(0xFFFFULL << (hw * WREG_SIZE/2))) | op;
         break;
 
@@ -96,7 +100,7 @@ int dpi_wide_move(CPU_state* state, uint8_t sf, uint8_t opc, uint32_t operand, u
         return DECODE_FAIL;
     }
 
-    state->registers[rd] = result;
+    state->registers[rd] = sf?result:(HALF_REG_MASK & result);
     return DECODE_OK;
 }
 

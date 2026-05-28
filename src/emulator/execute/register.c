@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include <stdint.h>
 #include <stdio.h>
 #include "execute.h"
 #include "../utils.h"
@@ -5,6 +7,14 @@
 #define ZR 0
 
 typedef enum {LSL = 0, LSR = 1, ASR = 2, ROR = 3} shift_encodings;
+
+static void logical_update_flags(CPU_state* state, uint64_t res){
+    state->pstate.C = 0;
+    state->pstate.V = 0;
+    state->pstate.Z = res == 0;
+    state->pstate.N = res < 0;
+}
+
 
 int arithmetic_logic(
     CPU_state* state,
@@ -19,8 +29,8 @@ int arithmetic_logic(
     bool id_bit = mask_instr_bits(opr, 3,3);
     uint8_t shift = mask_instr_bits(opr,2,1);
     bool n = mask_instr_bits(opr,0,0);
-    uint64_t rm_val = rm<XZR?state->registers[rm]:ZR;
-    uint64_t rn_val = rn<XZR?state->registers[rn]:ZR;
+    uint64_t rm_val = rm != XZR?state->registers[rm]:ZR;
+    uint64_t rn_val = rn != XZR?state->registers[rn]:ZR;
 
 
     if (!sf && operand>=WREG_SIZE){
@@ -28,6 +38,11 @@ int arithmetic_logic(
         return DECODE_FAIL;
     }
 
+
+    if (!sf){
+        rm_val &= HALF_REG_MASK;
+        rn_val &= HALF_REG_MASK;
+    }
 
     //Shifting
 
@@ -39,14 +54,25 @@ int arithmetic_logic(
             rm_val >>= operand;
             break;
         case ASR:
-            rm_val = (int8_t)rm_val>>operand;
+            rm_val = sf?
+                    (uint64_t)((int64_t)rm_val>>operand):
+                    (uint32_t)((int32_t)rm_val >> operand);
             break;
-        case ROR:
-            rm_val = (rm_val >> (operand % WREG_SIZE)) | (rm_val >> (WREG_SIZE-(operand % WREG_SIZE)));
+        case ROR:{
+            uint8_t w = sf ? REG_SIZE : WREG_SIZE;
+            uint8_t r = operand % w;
+            if (r != 0){
+                rm_val = (rm_val >> r) | (rm_val << (w-r));
+            }
             break;
+        }         
         default:
             fprintf(stderr, "Could not decode the shift operation");
             return DECODE_FAIL;
+    }
+
+    if (!sf){
+        rm_val &= HALF_REG_MASK;
     }
 
     uint64_t op2 = rm_val;
@@ -69,6 +95,7 @@ int arithmetic_logic(
             case 1:
                 result = rn_val+op2;
                 update_flags(state,rn_val,op2,result,sf,true);
+                break;
             case 2:
                 result = rn_val - op2;
                 break;
@@ -94,7 +121,7 @@ int arithmetic_logic(
                 break;
             case 3:
                 result = rn_val & op2;
-                update_flags(state,rn_val,op2,result,sf,false);
+                logical_update_flags(state,result);
                 break;
             default:
                 fprintf(stderr,"Invalid Logical Operation");
@@ -105,8 +132,8 @@ int arithmetic_logic(
         return DECODE_FAIL;
     }
 
-    if (rd < XZR) {   //Handles ZR case
-        state->registers[rd] = sf?result:(uint32_t)result;
+    if (rd != XZR) {   //Handles ZR case
+        state->registers[rd] = sf?result:(HALF_REG_MASK & result);
     }
 
     return DECODE_OK;
@@ -128,12 +155,18 @@ int multiply(
         fprintf(stderr, "Invalid instruction");
         return DECODE_FAIL;
     }
-    bool x = mask_instr_bits(operand, 6,6);
-    uint8_t ra = mask_instr_bits(operand, 5,0);
+    bool x = mask_instr_bits(operand, 5,5);
+    uint8_t ra = mask_instr_bits(operand, 4,0);
 
-    uint64_t ra_val = ra < XZR?state->registers[ra]:ZR;
-    uint64_t rm_val = rm<XZR?state->registers[rm]:ZR;
-    uint64_t rn_val = rn<XZR?state->registers[rn]:ZR;
+    uint64_t ra_val = ra != XZR?state->registers[ra]:ZR;
+    uint64_t rm_val = rm!=XZR?state->registers[rm]:ZR;
+    uint64_t rn_val = rn!=XZR?state->registers[rn]:ZR;
+
+    if (!sf){
+        ra_val &= ra_val & HALF_REG_MASK;
+        rm_val &= rm_val & HALF_REG_MASK;
+        rn_val &= rn_val & HALF_REG_MASK;
+    }
 
     uint64_t result;
 
@@ -144,8 +177,8 @@ int multiply(
         result = ra_val + (rn_val * rm_val);
     }
 
-    if (rd < XZR){
-        state -> registers[rd] = sf?result:(uint32_t)result;
+    if (rd != XZR){
+        state -> registers[rd] = sf?result:(HALF_REG_MASK & result);
     }
 
 
