@@ -22,7 +22,7 @@ uint64_t register_offset(CPU_state* state, uint8_t sf, uint16_t xm, uint8_t xn) 
     return xn_val + xm_val;
 }
 
-uint64_t indexed(CPU_state* state, uint8_t sf, uint16_t simm9, uint8_t xn, uint8_t i) {
+uint64_t indexed(CPU_state* state, uint8_t sf, int16_t simm9, uint8_t xn, uint8_t i) {
 
     uint64_t xn_val = state->registers[xn];
     
@@ -52,7 +52,7 @@ int load_store(CPU_state* state, uint8_t l, uint64_t address, uint8_t rt, uint8_
         for (int i = 0; i < size; i++) {
             //if address exceeds memory, exit
             if (address + i >= MEMORY_SIZE){
-                printf(stderr,"Address out of bounds");
+                fprintf(stderr,"Address out of bounds");
                 return DECODE_FAIL;
             };
 
@@ -69,7 +69,7 @@ int load_store(CPU_state* state, uint8_t l, uint64_t address, uint8_t rt, uint8_
         //write to memory the value stores, 1 byte at a time
         for (int i = 0; i < size; i++) {
             if (address + i >= MEMORY_SIZE){
-                printf(stderr,"Address out of bounds");
+                fprintf(stderr,"Address out of bounds");
                 return DECODE_FAIL;
             };
 
