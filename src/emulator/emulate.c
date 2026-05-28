@@ -9,7 +9,7 @@
 
 int main(int argc, char **argv) {
    // Checking arguments
-   if (argc < 2){
+   if (argc != 3){
      fprintf(stderr, "Format: emulate {name}.bin {output}.out (optional).\n");
      return EXIT_FAILURE;
    }
@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 
 
    // Load instructions
-   if (!load_instructions(&state,input_file)){
+   if (load_instructions(&state,input_file)!=0){
      return EXIT_FAILURE;
    };
    uint32_t curr_instr = instruction_fetch(&state);

@@ -14,7 +14,6 @@ void output(CPU_state* state, FILE* output){
        fprintf(output,"X%02d = %016lx\n", i, state->registers[i]);
    }
 
-
    // Priting PC and PSTATE
    fprintf(output,"PC = %016lx\n", state->pc);
    fprintf(output, "PSTATE : ");
