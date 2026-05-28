@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "execute.h"
 #include "../utils.h"
-#include "execute_utils.h"
+
 #define SIMM_26_MASK 0x2000000
 #define SIMM_19_MASK 0x40000
 #define OFFSET_MUL 4

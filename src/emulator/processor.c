@@ -17,7 +17,7 @@ typedef enum{
 
 // Initialising CPU State
 CPU_state state_init(Sys_Memory* memory){
-    PSTATE pstate = {false, false, false, false};
+    PSTATE pstate = {false, true, false, false};
     CPU_state res = {{0}, 0, pstate, memory};
     return res; 
 }

@@ -11,10 +11,9 @@ typedef enum {LSL = 0, LSR = 1, ASR = 2, ROR = 3} shift_encodings;
 static void logical_update_flags(CPU_state* state, uint64_t res, bool sf){
     state->pstate.C = 0;
     state->pstate.V = 0;
-    state->pstate.Z = res == 0;
-
     uint64_t mask = sf ? 0xFFFFFFFFFFFFFFFFULL : 0xFFFFFFFFULL;
     res &= mask;
+    state->pstate.Z = res == 0;
     uint64_t check_sign = sf ? (1ULL << (REG_SIZE - 1)) : (1ULL << (WREG_SIZE - 1));
     state->pstate.N = (res & check_sign) != 0;
 }
