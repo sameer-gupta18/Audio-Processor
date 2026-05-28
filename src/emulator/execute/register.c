@@ -2,7 +2,6 @@
 #include "execute.h"
 #include "../utils.h"
 #include "execute_utils.h"
-#define WREG 32
 #define ZR 0
 
 typedef enum {LSL = 0, LSR = 1, ASR = 2, ROR = 3} shift_encodings;
@@ -20,11 +19,11 @@ int arithmetic_logic(
     bool id_bit = mask_instr_bits(opr, 3,3);
     uint8_t shift = mask_instr_bits(opr,2,1);
     bool n = mask_instr_bits(opr,0,0);
-    uint64_t rm_val = rm<WREG - 1?state->registers[rm]:ZR;
-    uint64_t rn_val = rn<WREG - 1?state->registers[rn]:ZR;
+    uint64_t rm_val = rm<XZR?state->registers[rm]:ZR;
+    uint64_t rn_val = rn<XZR?state->registers[rn]:ZR;
 
 
-    if (!sf && operand>=WREG){
+    if (!sf && operand>=WREG_SIZE){
         fprintf(stderr,"Operand out of range");
         return DECODE_FAIL;
     }
@@ -43,7 +42,7 @@ int arithmetic_logic(
             rm_val = (int8_t)rm_val>>operand;
             break;
         case ROR:
-            rm_val = (rm_val >> (operand % WREG)) | (rm_val >> (WREG-(operand % WREG)));
+            rm_val = (rm_val >> (operand % WREG_SIZE)) | (rm_val >> (WREG_SIZE-(operand % WREG_SIZE)));
             break;
         default:
             fprintf(stderr, "Could not decode the shift operation");
@@ -106,7 +105,7 @@ int arithmetic_logic(
         return DECODE_FAIL;
     }
 
-    if (rd < WREG - 1) {   //Handles ZR case
+    if (rd < XZR) {   //Handles ZR case
         state->registers[rd] = sf?result:(uint32_t)result;
     }
 
@@ -132,11 +131,11 @@ int multiply(
     bool x = mask_instr_bits(operand, 6,6);
     uint8_t ra = mask_instr_bits(operand, 5,0);
 
-    uint64_t ra_val = ra < WREG - 1?state->registers[ra]:ZR;
-    uint64_t rm_val = rm<WREG - 1?state->registers[rm]:ZR;
-    uint64_t rn_val = rn<WREG - 1?state->registers[rn]:ZR;
+    uint64_t ra_val = ra < XZR?state->registers[ra]:ZR;
+    uint64_t rm_val = rm<XZR?state->registers[rm]:ZR;
+    uint64_t rn_val = rn<XZR?state->registers[rn]:ZR;
 
-    uint64_t result = 0;
+    uint64_t result;
 
     if (x){
         result = ra_val - (rn_val * rm_val);
@@ -145,7 +144,7 @@ int multiply(
         result = ra_val + (rn_val * rm_val);
     }
 
-    if (rd < WREG - 1){
+    if (rd < XZR){
         state -> registers[rd] = sf?result:(uint32_t)result;
     }
 
@@ -170,5 +169,5 @@ int data_processing_register(
     } else{
         res = arithmetic_logic(state,sf,opc,rm,opr,operand,rn,rd);
     }
-    return res;//TODO
+    return res;
 }

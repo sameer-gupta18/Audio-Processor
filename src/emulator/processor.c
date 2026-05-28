@@ -55,10 +55,11 @@ int instruction_decode(CPU_state *state, uint32_t instruction){
         uint8_t opc = mask_instr_bits(instruction, 30 , 29 );
         uint8_t m = mask_instr_bits(instruction, 28, 28);
         uint8_t opr = mask_instr_bits(instruction, 24, 21);
+        uint8_t rm = mask_instr_bits(instruction, 20,16);
         uint32_t operand = mask_instr_bits(instruction, 15, 10);
         uint8_t rn = mask_instr_bits(instruction, 9, 5);
         uint8_t rd = mask_instr_bits(instruction, 4, 0);
-        return data_processing_register(state,sf , opc, m, opr, operand, rn, rd);
+        return data_processing_register(state,sf , opc, m, rm,opr, operand, rn, rd);
     } else if( // Matching with 31 =1 & op0 = x1x0
         (mask_instr_bits(instruction, 31, 31)==1) && 
         (mask_instr_bits(instruction, 27, 27)==1) && 

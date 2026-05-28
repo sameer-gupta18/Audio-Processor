@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "../processor.h"
-#include "../utils.h"
 #include "execute_utils.h"
 
 //Define update flags
