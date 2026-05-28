@@ -1,6 +1,5 @@
 #include "execute.h"
 #include "../utils.h"
-#include "execute_utils.h"
 #include <stdio.h>
 #define LOAD 1
 #define OFFSET 4
@@ -14,7 +13,7 @@ uint64_t transfer_uo(CPU_state* state, uint8_t sf, uint16_t offset, uint8_t xn) 
     return xn_val + uoffset;
 }
 
-uint64_t register_offset(CPU_state* state, uint8_t sf, uint16_t xm, uint8_t xn) {
+uint64_t register_offset(CPU_state* state, uint16_t xm, uint8_t xn) {
 
     uint64_t xn_val = state->registers[xn];
     uint64_t xm_val = state->registers[xm];
@@ -22,7 +21,7 @@ uint64_t register_offset(CPU_state* state, uint8_t sf, uint16_t xm, uint8_t xn) 
     return xn_val + xm_val;
 }
 
-uint64_t indexed(CPU_state* state, uint8_t sf, int16_t simm9, uint8_t xn, uint8_t i) {
+uint64_t indexed(CPU_state* state, int16_t simm9, uint8_t xn, uint8_t i) {
 
     uint64_t xn_val = state->registers[xn];
     
@@ -97,7 +96,7 @@ int single_data_transfer(CPU_state* state, uint8_t sf, uint8_t u, uint8_t l, uin
         if (off1 == 1) {
             //register offset
             uint8_t xm = mask_instr_bits(offset, 10, 6);
-            transfer_address = register_offset(state, sf, xm, xn);
+            transfer_address = register_offset(state, xm, xn);
         }
 
         else {
@@ -105,7 +104,7 @@ int single_data_transfer(CPU_state* state, uint8_t sf, uint8_t u, uint8_t l, uin
             uint8_t i = mask_instr_bits(offset, 1, 1);
             int16_t simm9 = (int16_t)(mask_instr_bits(offset, 10, 2) << 7) >> 7;
 
-            transfer_address = indexed(state, sf, simm9, xn, i);
+            transfer_address = indexed(state, simm9, xn, i);
         }
     }
 

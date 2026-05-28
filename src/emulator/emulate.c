@@ -6,10 +6,16 @@
 #include "output.h"
 #define PC_OFFSET 4
 
+void cleanup(FILE* out, Sys_Memory* memory){
+   if (out!=stdout){
+     fclose(out);
+   }
+   free(memory);
+}
 
 int main(int argc, char **argv) {
    // Checking arguments
-   if (argc != 3){
+   if (argc < 2){
      fprintf(stderr, "Format: emulate {name}.bin {output}.out (optional).\n");
      return EXIT_FAILURE;
    }
@@ -28,6 +34,7 @@ int main(int argc, char **argv) {
    Sys_Memory *memory = calloc(1, sizeof(Sys_Memory));
    if(memory == NULL){
      fprintf(stderr, "Could not allocate memory.\n");
+     cleanup(out, memory);
      return EXIT_FAILURE;
    }
 
@@ -37,12 +44,14 @@ int main(int argc, char **argv) {
 
    // Load instructions
    if (load_instructions(&state,input_file)!=0){
+    cleanup(out,memory);
      return EXIT_FAILURE;
    };
    uint32_t curr_instr = instruction_fetch(&state);
    int curr_status = instruction_decode(&state, curr_instr);
    while(curr_status != DECODE_HALT){
      if(curr_status == DECODE_FAIL){
+      cleanup(out,memory);
        return EXIT_FAILURE;
      }
      if(curr_status != DECODE_BRANCH){
@@ -54,9 +63,6 @@ int main(int argc, char **argv) {
   
    // Printing state and closing program
    output(&state, out);
-   if (out!=stdout){
-     fclose(out);
-   }
-   free(memory);
+   cleanup(out, memory);
    return EXIT_SUCCESS;
 }

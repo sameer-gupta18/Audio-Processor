@@ -8,11 +8,15 @@
 
 typedef enum {LSL = 0, LSR = 1, ASR = 2, ROR = 3} shift_encodings;
 
-static void logical_update_flags(CPU_state* state, uint64_t res){
+static void logical_update_flags(CPU_state* state, uint64_t res, bool sf){
     state->pstate.C = 0;
     state->pstate.V = 0;
     state->pstate.Z = res == 0;
-    state->pstate.N = res < 0;
+    
+    uint64_t mask = sf ? 0xFFFFFFFFFFFFFFFFULL : 0xFFFFFFFFULL;
+    res &= mask;
+    uint64_t check_sign = sf ? (1ULL << (REG_SIZE - 1)) : (1ULL << (WREG_SIZE - 1));
+    state->pstate.N = (res & check_sign) != 0;
 }
 
 
@@ -121,7 +125,7 @@ int arithmetic_logic(
                 break;
             case 3:
                 result = rn_val & op2;
-                logical_update_flags(state,result);
+                logical_update_flags(state,result,sf);
                 break;
             default:
                 fprintf(stderr,"Invalid Logical Operation");
@@ -163,9 +167,9 @@ int multiply(
     uint64_t rn_val = rn!=XZR?state->registers[rn]:ZR;
 
     if (!sf){
-        ra_val &= ra_val & HALF_REG_MASK;
-        rm_val &= rm_val & HALF_REG_MASK;
-        rn_val &= rn_val & HALF_REG_MASK;
+        ra_val &= HALF_REG_MASK;
+        rm_val &= HALF_REG_MASK;
+        rn_val &= HALF_REG_MASK;
     }
 
     uint64_t result;

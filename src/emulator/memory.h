@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef MEMORY_H
+#define MEMORY_H
 #include <stdint.h>
 #include <stdbool.h>
 
