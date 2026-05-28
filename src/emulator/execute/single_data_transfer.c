@@ -1,8 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "execute.h"
 #include "../utils.h"
 #include "execute_utils.h"
+#include <stdio.h>
 #define LOAD 1
 
 uint64_t transfer_uo(CPU_state* state, uint8_t sf, uint16_t offset, uint8_t xn) {
@@ -51,7 +50,10 @@ int load_store(CPU_state* state, uint8_t l, uint64_t address, uint8_t rt, uint8_
         //read the value from memory 1 byte at a time
         for (int i = 0; i < size; i++) {
             //if address exceeds memory, exit
-            if (address + i >= MEMORY_SIZE) exit;
+            if (address + i >= MEMORY_SIZE){
+                printf(stderr,"Address out of bounds");
+                return DECODE_FAIL;
+            };
 
             value |= ((uint64_t)state->memory->data[address + i]) << (8 * i);
         }
@@ -65,13 +67,16 @@ int load_store(CPU_state* state, uint8_t l, uint64_t address, uint8_t rt, uint8_
 
         //write to memory the value stores, 1 byte at a time
         for (int i = 0; i < size; i++) {
-            if (address + i >= MEMORY_SIZE) exit;
+            if (address + i >= MEMORY_SIZE){
+                printf(stderr,"Address out of bounds");
+                return DECODE_FAIL;
+            };
 
             state->memory->data[address + i] = (value >> (8 * i)) & 0xFF;
         }
     }
 
-    return 0;
+    return DECODE_OK;
 }
 
 
@@ -81,7 +86,7 @@ int single_data_transfer(CPU_state* state, uint8_t sf, uint8_t u, uint8_t l, uin
     
     //Determine the addressing mode based on u and offset 
     if (u == 1) {
-        //unisgned immediate offset
+        //unsigned immediate offset
         transfer_address = transfer_uo(state, sf, offset, xn);
     } 
     
@@ -103,18 +108,18 @@ int single_data_transfer(CPU_state* state, uint8_t sf, uint8_t u, uint8_t l, uin
         }
     }
 
-    load_store(state, l, transfer_address, rt, sf);
-    return EXIT_SUCCESS;
+    int result = load_store(state, l, transfer_address, rt, sf);
+    return result;
 }
 
-int load_literal(CPU_state* state, uint8_t sf, uint32_t simm19, uint8_t rt) {
+int load_literal(CPU_state* state, uint8_t sf, int32_t simm19, uint8_t rt) {
 
     //calculate address based on current pc and simm19
-    int64_t offset = (int32_t)simm19 * 4;
+    int64_t offset = simm19 * 4;
     uint64_t addr = (uint64_t)(offset + state->pc);
 
     //Pass LOAD cos literals only works with load
-    load_store(state, LOAD, addr, rt, sf);
+    int result = load_store(state, LOAD, addr, rt, sf);
 
-    return EXIT_SUCCESS;
+    return result;
 }

@@ -29,8 +29,9 @@ extern int dpi_wide_move(
 
 extern int data_processing_register(
     CPU_state* state,
-    uint8_t sf, 
+    bool sf, 
     uint8_t opc, 
+    bool m, 
     uint8_t rm,
     uint8_t opr, 
     uint8_t operand, 
@@ -40,8 +41,8 @@ extern int data_processing_register(
 
 extern int arithmetic_logic(
     CPU_state* state,
-    uint8_t sf, 
-    uint8_t opc, 
+    bool sf, 
+    uint8_t opc,
     uint8_t rm,
     uint8_t opr, 
     uint8_t operand, 
@@ -51,7 +52,7 @@ extern int arithmetic_logic(
 
 extern int multiply(
     CPU_state* state,
-    uint8_t sf, 
+    bool sf, 
     uint8_t opc, 
     uint8_t rm,
     uint8_t opr, 

@@ -59,7 +59,7 @@ int dpi_arithmetic(CPU_state* state, uint8_t sf, uint8_t opc, uint32_t operand, 
         break;
     }
 
-    state->registers[rd] = result;
+    state->registers[rd] = sf?result:(uint32_t)result;
     return 0;
 }
 
