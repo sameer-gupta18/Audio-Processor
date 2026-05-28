@@ -12,7 +12,7 @@ static void logical_update_flags(CPU_state* state, uint64_t res, bool sf){
     state->pstate.C = 0;
     state->pstate.V = 0;
     state->pstate.Z = res == 0;
-    
+
     uint64_t mask = sf ? 0xFFFFFFFFFFFFFFFFULL : 0xFFFFFFFFULL;
     res &= mask;
     uint64_t check_sign = sf ? (1ULL << (REG_SIZE - 1)) : (1ULL << (WREG_SIZE - 1));
@@ -155,7 +155,7 @@ int multiply(
     uint8_t rn,
     uint8_t rd
 ){
-    if (!(opc == 0 && opr == 0b1000)){
+    if (!(opc == 0 && opr == 8)){
         fprintf(stderr, "Invalid instruction");
         return DECODE_FAIL;
     }
