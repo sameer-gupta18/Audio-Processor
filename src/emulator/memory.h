@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define MEMORY_SIZE (1 << 21)
+#define MEMORY_SIZE 2097152
 
 typedef struct{
     uint8_t data[MEMORY_SIZE];

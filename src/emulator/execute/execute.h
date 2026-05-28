@@ -29,7 +29,30 @@ extern int dpi_wide_move(
 
 extern int data_processing_register(
     CPU_state* state,
-    uint8_t sf, 
+    bool sf, 
+    uint8_t opc, 
+    bool m, 
+    uint8_t rm,
+    uint8_t opr, 
+    uint8_t operand, 
+    uint8_t rn,
+    uint8_t rd
+);
+
+extern int arithmetic_logic(
+    CPU_state* state,
+    bool sf, 
+    uint8_t opc,
+    uint8_t rm,
+    uint8_t opr, 
+    uint8_t operand, 
+    uint8_t rn,
+    uint8_t rd
+);
+
+extern int multiply(
+    CPU_state* state,
+    bool sf, 
     uint8_t opc, 
     uint8_t rm,
     uint8_t opr, 
@@ -37,6 +60,7 @@ extern int data_processing_register(
     uint8_t rn,
     uint8_t rd
 );
+
 extern int single_data_transfer(
     CPU_state* state,
     uint8_t sf, 
@@ -55,10 +79,8 @@ extern int load_literal(
 
 extern int branch(
     CPU_state* state,
+    uint8_t type,
     uint32_t operand
 );
-
-
-// and many more
 
 #endif

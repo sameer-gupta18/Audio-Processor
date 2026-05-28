@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "execute.h"
 #include "../utils.h"
 #include "execute_utils.h"
@@ -14,9 +13,9 @@ int dpi_arithmetic(CPU_state* state, uint8_t sf, uint8_t opc, uint32_t operand, 
     uint32_t op2 = imm12;
 
     //If rd or rn = 31, encode stack pointer
-    if (rd == 31 || rn == 31) {
+    if (rd == XZR || rn == XZR) {
         //Implement stack
-        return 0;
+        return DECODE_OK;
     }
 
     //If sh = 1, shift left by 12
@@ -25,7 +24,7 @@ int dpi_arithmetic(CPU_state* state, uint8_t sf, uint8_t opc, uint32_t operand, 
     }
 
     uint64_t rn_val = state->registers[rn];
-    uint64_t result = 0;
+    uint64_t result;
 
     switch (opc)
     {
@@ -55,12 +54,11 @@ int dpi_arithmetic(CPU_state* state, uint8_t sf, uint8_t opc, uint32_t operand, 
 
     default:
         fprintf(stderr, "Invalid arithmetic operation");
-        exit(EXIT_FAILURE);
-        break;
+        return DECODE_FAIL;
     }
 
-    state->registers[rd] = result;
-    return 0;
+    state->registers[rd] = sf?result:(uint32_t)result;
+    return DECODE_OK;
 }
 
 //Define wide move
@@ -68,8 +66,8 @@ int dpi_wide_move(CPU_state* state, uint8_t sf, uint8_t opc, uint32_t operand, u
     uint8_t hw = mask_instr_bits(operand, 17, 16);
     uint16_t imm16 = mask_instr_bits(operand, 15, 0);
 
-    uint64_t op = (uint64_t)imm16 << (hw * 16);
-    uint64_t result = 0;
+    uint64_t op = (uint64_t)imm16 << (hw * WREG_SIZE/2);
+    uint64_t result;
 
     //if registers are 32 bit then mask
     if (!sf) {
@@ -90,34 +88,33 @@ int dpi_wide_move(CPU_state* state, uint8_t sf, uint8_t opc, uint32_t operand, u
         break;
 
     case 3:
-        result = (old_val & ~(0xFFFFULL << (hw * 16))) | op;
+        result = (old_val & ~(0xFFFFULL << (hw * WREG_SIZE/2))) | op;
         break;
 
     default:
         fprintf(stderr, "Invalid wide move operation");
-        exit(EXIT_FAILURE);
-        break;
+        return DECODE_FAIL;
     }
 
     state->registers[rd] = result;
-    return 0;
+    return DECODE_OK;
 }
 
 
 //Define data processing instructions (immediate)
 int data_processing_immediate(CPU_state* state, uint8_t sf, uint8_t opc, uint8_t opi, uint32_t operand, uint8_t rd) {
     //If opi = 010, call arithmetic function
+    int result;
     if (opi == 2) {
-        dpi_arithmetic(state, sf, opc, operand, rd);
+        result = dpi_arithmetic(state, sf, opc, operand, rd);
     }
     //If opi = 101, call wide move function
     else if (opi == 5) {
-        dpi_wide_move(state, sf, opc, operand, rd);
+        result = dpi_wide_move(state, sf, opc, operand, rd);
     }
     else {
         fprintf(stderr, "Instruction is invalid");
-        exit(EXIT_FAILURE);
+        return DECODE_FAIL;
     }
-    return 0;
+    return result;
 }
-

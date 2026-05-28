@@ -9,6 +9,14 @@ typedef struct{
     bool V;
 } PSTATE;
 
+typedef enum{
+     DECODE_OK= 0,
+     DECODE_BRANCH = 1, 
+     DECODE_FAIL = -1, 
+     DECODE_HALT = 2
+    } STATUS;
+
+
 typedef struct{
     uint64_t registers[31];
     uint64_t pc;
