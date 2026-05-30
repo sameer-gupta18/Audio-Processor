@@ -9,9 +9,23 @@ CFLAGS  ?= -std=c17 -g\
 
 all: assemble emulate
 
+EMULATE_OBJS = \
+	emulator/emulate.o \
+	emulator/load.o \
+	emulator/output.o \
+	emulator/processor.o \
+	emulator/utils.o \
+	emulator/execute/branch.o \
+	emulator/execute/execute_utils.o \
+	emulator/execute/immediate.o \
+	emulator/execute/register.o \
+	emulator/execute/single_data_transfer.o
+
+# Linking Rules:
 assemble: assemble.o
-emulate: emulate.o
+emulate: $(EMULATE_OBJS)
+	$(CC) $(CFLAGS) -o $@ $(EMULATE_OBJS)
 
 clean:
-	$(RM) *.o assemble emulate
+	$(RM) $(EMULATE_OBJS) assemble.o assemble emulate
 	
