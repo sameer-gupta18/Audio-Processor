@@ -76,4 +76,4 @@ typedef struct{
         Load_Literal load_literal;
         Branch_Instruction branch;
     } instruction_data;
-} Bitwise_Instruction; 
+} Assembled_Instruction; 
