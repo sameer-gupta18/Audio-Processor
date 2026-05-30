@@ -4,7 +4,6 @@
 #include "execute.h"
 #include "../utils.h"
 #include "execute_utils.h"
-#define ZR 0
 
 typedef enum {LSL = 0, LSR = 1, ASR = 2, ROR = 3} shift_encodings;
 

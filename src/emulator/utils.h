@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "memory.h"
 #define XZR 31
+#define ZR 0
 #define REG_SIZE 64
 #define WREG_SIZE 32
 
