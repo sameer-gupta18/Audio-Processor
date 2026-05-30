@@ -8,7 +8,7 @@
 int parser(
     char* assembly_instruction, 
     Sym_Table *symbol_table, 
-    Parser_Instruction* parsed_list, // points to the cuurrent empty slot (not basal)
+    Parser_Instruction* parsed_list
 );
 
 
