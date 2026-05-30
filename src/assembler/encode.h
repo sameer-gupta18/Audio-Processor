@@ -7,7 +7,7 @@
 int encoder(
     Sym_Table *sym_table, 
     Parser_Instruction* parserIR, 
-    Assembled_Instruction* assembled_list
+    Assembled_Instruction* assembled_list // points to the cuurrent empty slot (not basal)
 );
 
 #endif

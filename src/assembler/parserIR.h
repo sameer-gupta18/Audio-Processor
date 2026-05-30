@@ -1,5 +1,5 @@
-#ifndef PARSER_IR
-#define PARSER_IR
+#ifndef PARSER_IR_H
+#define PARSER_IR_H
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -7,10 +7,10 @@ typedef enum{
     ADD,
     ADDS,
     SUB,
-    HALT,
     DIRECTIVE
     // and many more
 } Mnemonic; 
+
 
 typedef enum{
     REGISTER, 
@@ -44,7 +44,10 @@ typedef enum{
     LITERAL
 } Address_Kind; 
 
+typedef enum { LIT_LABEL, LIT_ADDR } Literal_Kind;
+
 typedef struct{
+    Literal_Kind literal_kind; // tells which field the owner can pick
     union{
         uint64_t int_address;
         char *label;
@@ -55,12 +58,9 @@ typedef struct{
     Address_Kind kind; 
     union{
         Address_Literal literal;
-        struct{
-            Parser_Register xn;
-            Parser_Register xm; 
-            uint32_t imm; 
-            int32_t simm;
-        } offset_data; 
+        struct {Parser_Register xn; uint32_t imm; } unsigned_offset;
+        struct {Parser_Register xn; Parser_Register xm;} register_offset;
+        struct {Parser_Register xn; int32_t simm;} pre_post_index;
     } address_data; 
 } Parser_Address;
 
