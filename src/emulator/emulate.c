@@ -3,6 +3,7 @@
 #include "load.h"
 #include "memory.h"
 #include "processor.h"
+#include "decode.h"
 #include "output.h"
 #define PC_OFFSET 4
 
