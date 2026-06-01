@@ -1,6 +1,7 @@
 #ifndef EXECUTE_H
 #define EXECUTE_H
 #include "../processor.h"
+#include "../decode.h"
 
 extern int data_processing_immediate(
     CPU_state* state,
