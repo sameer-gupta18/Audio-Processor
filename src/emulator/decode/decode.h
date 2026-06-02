@@ -3,8 +3,8 @@
 #include "stdint.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "utils.h"
-#include "processor.h"
+#include "../utils.h"
+#include "../processor.h"
 
 typedef enum{
      DECODE_OK= 0,

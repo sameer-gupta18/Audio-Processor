@@ -1,6 +1,6 @@
-#include "processor.h"
+#include "../processor.h"
 #include "decode.h"
-#include "execute/execute.h"
+#include "../execute/execute.h"
 
 #define HALT 0x8a000000
 #define SIMM_19_MASK 0x40000

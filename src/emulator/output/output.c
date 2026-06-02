@@ -1,6 +1,5 @@
 #include "output.h"
-#include "memory.h"
-#include "utils.h"
+#include "../utils.h"
 #include <stdio.h>
 #define NUM_REGS 31
 

@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "load.h"
 #include "memory.h"
 #include "processor.h"
-#include "decode.h"
-#include "output.h"
+#include "decode/decode.h"
+#include "output/output.h"
+#include "load/load.h"
 #define PC_OFFSET 4
 
 void cleanup(FILE* out, Sys_Memory* memory){
