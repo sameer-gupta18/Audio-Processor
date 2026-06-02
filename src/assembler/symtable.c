@@ -15,8 +15,8 @@ static uint32_t hash_function_djb2(const char* label, int capacity){
 static bool resize(Sym_Table* sym_table){
     int old_capacity = sym_table->capacity;
     if (((double)sym_table->size) / old_capacity > LOAD_FACTOR){
-        sym_table->capacity *= 2;
-        Node** new_buckets = calloc(sym_table->capacity, sizeof(Node*));
+        int new_capacity = old_capacity*2;
+        Node** new_buckets = calloc(new_capacity, sizeof(Node*));
         if(new_buckets==NULL){
             return false; 
         }
@@ -24,7 +24,7 @@ static bool resize(Sym_Table* sym_table){
             Node *bucket = sym_table->buckets[i];
             Node *curr = bucket;
             while(curr!=NULL){
-                int new_index = hash_function_djb2(curr->label, sym_table->capacity);
+                int new_index = hash_function_djb2(curr->label, new_capacity);
                 Node *new_bucket = new_buckets[new_index];
                 Node *head = new_bucket; 
                 Node *next = curr->next;
@@ -35,6 +35,7 @@ static bool resize(Sym_Table* sym_table){
         }
         free(sym_table->buckets);
         sym_table->buckets = new_buckets;
+        sym_table->capacity= new_capacity;
     }
     return true; 
 }
@@ -82,10 +83,8 @@ bool insert_address(Sym_Table* sym_table, char* label, uint32_t address){
     new->next = head; 
     sym_table->buckets[index] = new; 
     sym_table->size++;
-    if(resize(sym_table)){
-        return true;
-    }
-    return false; 
+    resize(sym_table);
+    return true; 
 }
 
 bool search_label(Sym_Table* sym_table, char* label, uint32_t*out){
