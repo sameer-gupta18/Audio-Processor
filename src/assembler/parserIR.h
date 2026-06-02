@@ -1,14 +1,43 @@
 #ifndef PARSER_IR_H
 #define PARSER_IR_H
+#include <iso646.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 typedef enum{
+    DIRECTIVE,
+    LABEL,
     ADD,
     ADDS,
     SUB,
-    DIRECTIVE
-    // and many more
+    SUBS,
+    CMP,
+    CMN,
+    NEG,
+    NEGS,
+    AND,
+    ANDS,
+    BIC,
+    BICS,
+    EOR,
+    ORR,
+    EON,
+    ORN,
+    TST,
+    MOVK,
+    MOVN,
+    MOVZ,
+    MOV,
+    MVN,
+    MADD,
+    MSUB,
+    MUL,
+    MNEG,
+    B,
+    BCOND,
+    BR,
+    STR,
+    LDR
 } Mnemonic; 
 
 
@@ -70,7 +99,7 @@ typedef struct{
         Parser_Address address;
         Parser_Register reg;
         Parser_Shift shift; 
-        int64_t immediate;
+        int32_t immediate;  //Possibly 64 bit
     } field_data;
 } Parser_Field;
 

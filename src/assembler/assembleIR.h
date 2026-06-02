@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-typedef enum {DPI, DPR, SDT, LOAD, BRANCH} instruction_kind; 
+typedef enum {DPI, DPR, SDT, LOAD, BRANCH, SPECIAL} instruction_kind; 
 typedef enum {UNCOND, COND, REG_BRANCH} branch_type; 
 typedef enum {REG_OFFSET, INDEX, UNSIGNED} sdt_type; 
 
@@ -68,6 +68,10 @@ typedef struct{
 } Branch_Instruction; 
 
 typedef struct{
+    int32_t value;
+} Special_Instruction;
+
+typedef struct{
     instruction_kind kind; 
     union {
         DP_Immediate dpi;
@@ -75,5 +79,6 @@ typedef struct{
         Single_Data sdt;
         Load_Literal load_literal;
         Branch_Instruction branch;
+        Special_Instruction value;
     } instruction_data;
 } Assembled_Instruction; 
