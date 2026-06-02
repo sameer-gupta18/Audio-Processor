@@ -5,12 +5,28 @@ typedef enum {UNCOND, COND, REG_BRANCH} branch_type;
 typedef enum {REG_OFFSET, INDEX, UNSIGNED} sdt_type; 
 
 typedef struct {
+    bool sh;
+    uint32_t imm12;
+    uint8_t rn;
+} Immediate_Arithmetic;
+
+typedef struct {
+    uint8_t hw;
+    uint32_t imm16;
+} Immediate_Wide_Move;
+
+typedef struct {
     uint8_t sf;
     uint8_t opc;
     uint8_t opi; 
-    uint32_t operand; 
+    union {
+        Immediate_Arithmetic immediate_arithmetic;
+        Immediate_Wide_Move immediate_widemove;
+    } operand;
     uint8_t rd; 
 } DP_Immediate;
+
+
 
 typedef struct {
     uint8_t sf;
