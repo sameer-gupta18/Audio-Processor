@@ -19,7 +19,8 @@ int second_pass(
     Sym_Table *sym_table, 
     Parser_Instruction* instrs,
     size_t list_length,
-    Assembled_Instruction* output
+    Assembled_Instruction* output,
+    size_t* curr_idx
 );
 
 #endif

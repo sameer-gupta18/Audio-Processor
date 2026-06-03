@@ -3,6 +3,7 @@
 #include <iso646.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "utils.h"
 
 typedef enum{
     DIRECTIVE,
@@ -105,10 +106,13 @@ typedef struct{
 
 typedef struct{
     Mnemonic mnemonic;
-    Parser_Field fields[4];
+    Parser_Field f0;
+    Parser_Field f1;
+    Parser_Field f2;
+    Parser_Field f3;
     uint8_t num_fields;
     uint32_t address;
-    uint8_t cond; // if b.cond
+    conds cond; // if b.cond
 } Parser_Instruction;
 
 #endif

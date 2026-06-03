@@ -19,8 +19,8 @@ typedef struct{
     int size; 
 } Sym_Table; 
 
-bool insert_address(Sym_Table* sym_table, char* label, uint32_t address);
-bool search_label(Sym_Table* sym_table, char* label, uint32_t*out);
+bool insert_address(Sym_Table* sym_table, char* label, uint64_t address);
+bool search_label(Sym_Table* sym_table, char* label, uint64_t*out);
 Sym_Table* symtable_init(void);
 void symtable_free(Sym_Table* st);
 

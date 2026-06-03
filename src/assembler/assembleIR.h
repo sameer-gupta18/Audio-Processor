@@ -1,5 +1,5 @@
 #include <stdint.h>
-
+#include "parserIR.h"
 typedef enum {DPI, DPR, SDT, LOAD, BRANCH, SPECIAL} instruction_kind; 
 typedef enum {UNCOND, COND, REG_BRANCH} branch_type; 
 typedef enum {REG_OFFSET, INDEX, UNSIGNED} sdt_type; 
@@ -67,9 +67,9 @@ typedef struct{
 
 typedef struct{
     uint8_t sf; 
-    uint8_t u;
-    uint8_t l;
-    Addressing_Mode operand;
+    bool u;
+    bool l;
+    Addressing_Mode offset;
     uint8_t xn;
     uint8_t rt;
 } Single_Data; 
@@ -82,16 +82,16 @@ typedef struct {
 
 typedef struct{
     int32_t simm19;
-    uint8_t cond;
+    conds cond;
 } Conditional_Branch; 
 
 
 typedef struct{
     branch_type mode; 
     union {
-        int32_t simm26;
-        uint8_t xn;
-        Conditional_Branch conditional;
+        int32_t simm26; //unconditional
+        uint8_t xn; //register
+        Conditional_Branch conditional; //conditional
     } data; 
 } Branch_Instruction; 
 
