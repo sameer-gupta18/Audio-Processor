@@ -26,15 +26,27 @@ typedef struct {
     uint8_t rd; 
 } DP_Immediate;
 
+typedef struct {
+    bool first_bit;
+    uint8_t shift;
+    bool n; 
+} Register_Operation;
 
+typedef struct {
+    bool x;
+    uint8_t ra;
+} Register_Multiply;
 
 typedef struct {
     uint8_t sf;
     uint8_t opc;
     uint8_t M; 
-    uint8_t opr;
+    Register_Operation opr;
     uint8_t rm; 
-    uint8_t operand; 
+    union {
+        uint8_t arith_logic_operand;
+        Register_Multiply multiply_operand;
+    } operand; 
     uint8_t rn;
     uint8_t rd; 
 } DP_Register; 

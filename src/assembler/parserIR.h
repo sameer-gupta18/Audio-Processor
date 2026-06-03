@@ -54,10 +54,10 @@ typedef struct{
 } Parser_Register;
 
 typedef enum{
-    LSL,
-    LSR,
-    ASR,
-    ROR
+    LSL = 0,
+    LSR = 1,
+    ASR = 2,
+    ROR = 4
 } Shift_Kind;
 
 typedef struct{
