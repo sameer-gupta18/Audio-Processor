@@ -12,6 +12,7 @@
 #define READ_OK 0
 #define READ_FAIL -1
 
+// Count number of lines with instructions, i.e. ignores blank lines
 extern uint64_t num_lines(FILE* input){
     uint64_t count = 0;
     int ch = fgetc(input);
@@ -28,6 +29,7 @@ extern uint64_t num_lines(FILE* input){
     return count; 
 }
 
+// Reads a line and passes it to instruction parse
 extern int read_to_parse(
     FILE *input,
     Parser_Instruction *parsed_list, 
@@ -35,6 +37,7 @@ extern int read_to_parse(
     uint64_t num_lines
 ){
     char* buffer = malloc(MAX_LINE_LEN * sizeof(char));
+    // Loop over number of instructions
     for(uint64_t i = 0; i < num_lines; i++){
        if(fgets(buffer, MAX_LINE_LEN, input)==NULL){
         free(buffer);
