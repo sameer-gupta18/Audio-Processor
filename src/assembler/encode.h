@@ -9,13 +9,13 @@ typedef enum {
     ENCODE_FAIL = 1
 } ENCODE_STATUS;
 
-int first_pass(
-    Sym_Table* sym_table,
-    Parser_Instruction* instruction_list,
-    size_t list_length
-);
+// int first_pass(
+//     Sym_Table* sym_table,
+//     Parser_Instruction* instruction_list,
+//     size_t list_length
+// );
 
-int second_pass(
+extern int encode(
     Sym_Table *sym_table, 
     Parser_Instruction* instrs,
     size_t list_length,

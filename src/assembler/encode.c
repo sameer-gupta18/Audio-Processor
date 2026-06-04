@@ -7,30 +7,56 @@
 #include "symtable.h"
 #include "utils.h"
 
+// Macros for alias instruction IR
+#define ALIAS_CMX(MNEM) {\
+                    (MNEM),\
+                    RZR,\
+                    instrs[i].f0,\
+                    instrs[i].f1,\
+                    .num_fields = 3,\
+                    instrs[i].address,\
+                    instrs[i].cond\
+                };
+#define ALIAS_NEGX(MNEM) {\
+                    (MNEM),\
+                    instrs[i].f0,\
+                    RZR,\
+                    instrs[i].f1,\
+                    .num_fields = 3,\
+                    instrs[i].address,\
+                    instrs[i].cond\
+                };
+#define ALIAS_MOVE(MNEM) {\
+                    (MNEM),\
+                    instrs[i].f0,\
+                    RZR,\
+                    instrs[i].f1,\
+                    .num_fields = 3,\
+                    instrs[i].address,\
+                    instrs[i].cond\
+                };
 
-// int first_pass(
-//     Sym_Table* sym_table,
-//     Parser_Instruction* instruction_list,
-//     size_t list_length
-// ){
-//     for (size_t i = 0; i < list_length; i++){
-//         if (instruction_list[i].mnemonic == LABEL && instruction_list[i].num_fields == 1){
-//             insert_address(
-//                 sym_table,
-//                 //can add asserts here to check if the data is valid
-//                 instruction_list[i].f0.field_data.address.address_data.literal.data.label,
-//                 instruction_list[i].address
-//             );
-//         } 
-//         else{
-//             continue;
-//         }
-//     }
+#define ALIAS_ARITH(MNEM) {\
+                    (MNEM),\
+                    instrs[i].f0,\
+                    instrs[i].f1,\
+                    instrs[i].f2,\
+                    RZR,\
+                    4,\
+                    instrs[i].address,\
+                    instrs[i].cond\
+                };
 
-//     return ENCODE_OK;
-// }
+#define ALIAS_ENCODE(IR) encode(\
+                    sym_table,\
+                    &(IR),\
+                    1,\
+                    output,\
+                    curr_idx\
+                );
+                
 
-Parser_Field RZR = {
+static Parser_Field RZR = {
                     REGISTER,
                     .field_data.reg = {
                         1,
@@ -363,15 +389,13 @@ int handle_branch(
     return ENCODE_OK;
 }
 
-int second_pass(
+int encode(
     Sym_Table *sym_table, 
     Parser_Instruction* instrs,
     size_t list_length,
     Assembled_Instruction* output,
     size_t* curr_idx //pass pointer to 0 counter initially
-){
-    // first_pass(sym_table,instrs,list_length);
-    
+){    
 
     for (size_t i = 0; i < list_length; i++){
         bool out;
@@ -417,7 +441,7 @@ int second_pass(
             case BICS:
             case MADD:
             case MSUB:
-                handle_register(instrs,i,output,*curr_idx);
+                out = handle_register(instrs,i,output,*curr_idx);
                 break;
             case LDR:
             case STR:
@@ -432,91 +456,32 @@ int second_pass(
                     return ENCODE_FAIL;
                 }
                 break;
-            // default:
-            //     printf(stderr,"Unknown Command");
-            //     return ENCODE_FAIL;
             case B:
             case BCOND:
             case BR:
                 out = handle_branch(instrs,i,output,*curr_idx,sym_table);
                 break;
             case CMP: {
-                Parser_Instruction alias_cmp = {
-                    SUBS,
-                    RZR,
-                    instrs[i].f0,
-                    instrs[i].f1,
-                    .num_fields = 3,
-                    instrs[i].address,
-                    instrs[i].cond
-                };
-                out = second_pass(
-                    sym_table,
-                    &alias_cmp,
-                    1,
-                    output,
-                    curr_idx
-                );
+                Parser_Instruction alias_cmp = ALIAS_CMX(SUBS); 
+                out = ALIAS_ENCODE(alias_cmp); 
                 break;
             }
             case CMN: {
-                Parser_Instruction alias_cmn = {
-                    ADDS,
-                    RZR,
-                    instrs[i].f0,
-                    instrs[i].f1,
-                    .num_fields = 3,
-                    instrs[i].address,
-                    instrs[i].cond
-                };
+                Parser_Instruction alias_cmn = ALIAS_CMX(ADDS); 
 
-                out = second_pass(
-                    sym_table,
-                    &alias_cmn,
-                    1,
-                    output,
-                    curr_idx
-                );
+                out = ALIAS_ENCODE(alias_cmn); 
                 break;
             }
             case NEG: {
-                Parser_Instruction alias_neg = {
-                    SUB,
-                    instrs[i].f0,
-                    RZR,
-                    instrs[i].f1,
-                    .num_fields = 3,
-                    instrs[i].address,
-                    instrs[i].cond
-                };
+                Parser_Instruction alias_neg = ALIAS_NEGX(SUB);
 
-                out = second_pass(
-                    sym_table,
-                    &alias_neg,
-                    1,
-                    output,
-                    curr_idx
-                );
+                out = ALIAS_ENCODE(alias_neg); 
                 break;
             }
             case NEGS: {
-                Parser_Instruction alias_negs = {
-                    SUBS,
-                    instrs[i].f0,
-                    RZR,
-                    instrs[i].f1,
-                    .num_fields = 3,
-                    instrs[i].address,
-                    instrs[i].cond
-                };
+                Parser_Instruction alias_negs = ALIAS_NEGX(SUBS);
 
-                out = second_pass(
-                    sym_table,
-                    &alias_negs,
-                    1,
-                    output,
-                    curr_idx
-                );
+                out = ALIAS_ENCODE(alias_negs);
                 break;
             }
             case TST: {
@@ -530,97 +495,34 @@ int second_pass(
                     instrs[i].cond
                 };
 
-                out = second_pass(
-                    sym_table,
-                    &alias_tst,
-                    1,
-                    output,
-                    curr_idx
-                );
+                out = ALIAS_ENCODE(alias_tst);
                 break;
             }
             case MVN: {
-                Parser_Instruction alias_mvn = {
-                    ORN,
-                    instrs[i].f0,
-                    RZR,
-                    instrs[i].f1,
-                    .num_fields = 3,
-                    instrs[i].address,
-                    instrs[i].cond
-                };
-
-                out = second_pass(
-                    sym_table,
-                    &alias_mvn,
-                    1,
-                    output,
-                    curr_idx
-                );
+                Parser_Instruction alias_mvn = ALIAS_MOVE(ORN); 
+                out = ALIAS_ENCODE(alias_mvn);
                 break;
             }
             case MOV: {
-                Parser_Instruction alias_mov = {
-                    ORR,
-                    instrs[i].f0,
-                    RZR,
-                    instrs[i].f1,
-                    .num_fields = 3,
-                    instrs[i].address,
-                    instrs[i].cond
-                };
+                Parser_Instruction alias_mov = ALIAS_MOVE(ORR); 
 
-                out = second_pass(
-                    sym_table,
-                    &alias_mov,
-                    1,
-                    output,
-                    curr_idx
-                );
+                out = ALIAS_ENCODE(alias_mov);
                 break;
             }
             case MUL: {
-                Parser_Instruction alias_mul = {
-                    MADD,
-                    instrs[i].f0,
-                    instrs[i].f1,
-                    instrs[i].f2,
-                    RZR,
-                    4,
-                    instrs[i].address,
-                    instrs[i].cond
-                };
+                Parser_Instruction alias_mul = ALIAS_ARITH(MADD); 
 
-                out = second_pass(
-                    sym_table,
-                    &alias_mul,
-                    1,
-                    output,
-                    curr_idx
-                );
+                out = ALIAS_ENCODE(alias_mul);
                 break;
             }
             case MNEG: {
-                Parser_Instruction alias_mneg = {
-                    MADD,
-                    instrs[i].f0,
-                    instrs[i].f1,
-                    instrs[i].f2,
-                    RZR,
-                    4,
-                    instrs[i].address,
-                    instrs[i].cond
-                };
-
-                out = second_pass(
-                    sym_table,
-                    &alias_mneg,
-                    1,
-                    output,
-                    curr_idx
-                );
+                Parser_Instruction alias_mneg = ALIAS_ARITH(MNEG); 
+                out = ALIAS_ENCODE(alias_mneg); 
                 break;
             }
+            default:
+                printf(stderr,"Unknown Mnemonic");
+                return ENCODE_FAIL;
         }
 
         if (out == ENCODE_FAIL){
@@ -628,7 +530,6 @@ int second_pass(
         }
         (*curr_idx)++;
     }
-
 
     return ENCODE_OK;
 }
