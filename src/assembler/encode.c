@@ -54,7 +54,16 @@
                     output,\
                     curr_idx\
                 );
-                
+
+#define ALIAS_TST(){\
+                    ANDS,\
+                    RZR,\
+                    instrs[i].f1,\
+                    instrs[i].f2,\
+                    .num_fields = 3,\
+                    instrs[i].address,\
+                    instrs[i].cond\
+                };
 
 static Parser_Field RZR = {
                     REGISTER,
@@ -464,60 +473,55 @@ int encode(
             case CMP: {
                 Parser_Instruction alias_cmp = ALIAS_CMX(SUBS); 
                 out = ALIAS_ENCODE(alias_cmp); 
+                (*curr_idx)--;
                 break;
             }
             case CMN: {
                 Parser_Instruction alias_cmn = ALIAS_CMX(ADDS); 
-
                 out = ALIAS_ENCODE(alias_cmn); 
+                (*curr_idx)--;
                 break;
             }
             case NEG: {
                 Parser_Instruction alias_neg = ALIAS_NEGX(SUB);
-
                 out = ALIAS_ENCODE(alias_neg); 
+                (*curr_idx)--;
                 break;
             }
             case NEGS: {
                 Parser_Instruction alias_negs = ALIAS_NEGX(SUBS);
-
                 out = ALIAS_ENCODE(alias_negs);
+                (*curr_idx)--;
                 break;
             }
             case TST: {
-                Parser_Instruction alias_tst = {
-                    ANDS,
-                    RZR,
-                    instrs[i].f1,
-                    instrs[i].f2,
-                    .num_fields = 3,
-                    instrs[i].address,
-                    instrs[i].cond
-                };
-
+                Parser_Instruction alias_tst = ALIAS_TST();
                 out = ALIAS_ENCODE(alias_tst);
+                (*curr_idx)--;
                 break;
             }
             case MVN: {
                 Parser_Instruction alias_mvn = ALIAS_MOVE(ORN); 
                 out = ALIAS_ENCODE(alias_mvn);
+                (*curr_idx)--;
                 break;
             }
             case MOV: {
                 Parser_Instruction alias_mov = ALIAS_MOVE(ORR); 
-
                 out = ALIAS_ENCODE(alias_mov);
+                (*curr_idx)--;
                 break;
             }
             case MUL: {
                 Parser_Instruction alias_mul = ALIAS_ARITH(MADD); 
-
                 out = ALIAS_ENCODE(alias_mul);
+                (*curr_idx)--;
                 break;
             }
             case MNEG: {
                 Parser_Instruction alias_mneg = ALIAS_ARITH(MNEG); 
                 out = ALIAS_ENCODE(alias_mneg); 
+                (*curr_idx)--; 
                 break;
             }
             default:
