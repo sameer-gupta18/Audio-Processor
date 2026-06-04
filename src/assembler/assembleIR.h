@@ -1,5 +1,9 @@
+#ifndef ASSEMBLE_IR
+#define ASSEMBLE_IR
 #include <stdint.h>
-#include "parserIR.h"
+#include <stdbool.h>
+#include <utils.h>
+
 typedef enum {DPI, DPR, SDT, LOAD, BRANCH, SPECIAL} instruction_kind; 
 typedef enum {UNCOND, COND, REG_BRANCH} branch_type; 
 typedef enum {REG_OFFSET, INDEX, UNSIGNED} sdt_type; 
@@ -110,3 +114,4 @@ typedef struct{
         Special_Instruction value;
     } instruction_data;
 } Assembled_Instruction; 
+#endif 
