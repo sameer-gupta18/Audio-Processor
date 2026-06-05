@@ -7,7 +7,6 @@
 
 typedef enum{
     DIRECTIVE,
-    LABEL,
     ADD,
     ADDS,
     SUB,
@@ -58,7 +57,7 @@ typedef enum{
     LSL = 0,
     LSR = 1,
     ASR = 2,
-    ROR = 4
+    ROR = 3
 } Shift_Kind;
 
 typedef struct{

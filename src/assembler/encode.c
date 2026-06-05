@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
 #include "encode.h"
 #include "parserIR.h"
@@ -58,8 +57,8 @@
 #define ALIAS_TST(){\
                     ANDS,\
                     RZR,\
+                    instrs[i].f0,\
                     instrs[i].f1,\
-                    instrs[i].f2,\
                     .num_fields = 3,\
                     instrs[i].address,\
                     instrs[i].cond\
@@ -80,7 +79,7 @@ int handle_directives(
     size_t curr_idx
 ){
     if (instrs[i].num_fields != 2 || instrs[i].f1.field != IMMEDIATE){
-        printf(stderr, "Invalid Directive. Follow '.int <simm>'");
+        fprintf(stderr, "Invalid Directive. Follow '.int <simm>'");
         return ENCODE_FAIL;
     }
     Special_Instruction out = {
@@ -117,7 +116,7 @@ int handle_immediate(
             opc = 3;
             break;
         default:
-            printf(stderr, "Invalid mnemonic for assembling");
+            fprintf(stderr, "Invalid mnemonic for assembling");
             return ENCODE_FAIL;
     }
 
@@ -149,7 +148,7 @@ int handle_immediate(
             instruction.operand.immediate_widemove = wm_operand;
             break;
         default:
-            printf(stderr, "Invalid mnemonic for assembling");
+            fprintf(stderr, "Invalid mnemonic for assembling");
             return ENCODE_FAIL;
     }
 
@@ -206,9 +205,10 @@ int handle_register(
             Register_Operation multiply_opr = {
                 1,0,0
             };
+            opr = multiply_opr;
             break;
         default:
-            printf(stderr, "Invalid Instruction");
+            fprintf(stderr, "Invalid Instruction");
             return ENCODE_FAIL;   
     }
 
@@ -252,7 +252,7 @@ int handle_register(
             instruction.operand.multiply_operand=reg_mult_madd;
             break;
         default:
-            printf(stderr, "Invalid Instruction");
+            fprintf(stderr, "Invalid Instruction");
             return ENCODE_FAIL;   
     }
 
@@ -295,9 +295,10 @@ int handle_load_literal(
     uint64_t addr = handle_literal(instr[i].f1.field_data.address.address_data.literal,sym_table); 
 
     if (addr % 4 == 0 && (instr[i].address >= addr ? (instr[i].address) - addr : addr - (instr[i].address)) < MB){
-        instruction.simm19 = addr >> 2;
+        int64_t offset = (int64_t)addr - (int64_t)instr[i].address;
+        instruction.simm19 = offset >> 2;
     } else{
-        printf(stderr, "Invalid Offset");
+        fprintf(stderr, "Invalid Offset");
         return ENCODE_FAIL;
     }
     Assembled_Instruction assembled_instr = {LOAD,.instruction_data.load_literal = instruction};
@@ -320,10 +321,12 @@ int handle_sdt(
     switch(instr[i].mnemonic){
         case LDR:
             instruction.l = 1;
+            break;
         case STR:
             instruction.l = 0;
+            break;
         default:
-            printf(stderr, "Invalid Instruction");
+            fprintf(stderr, "Invalid Instruction");
             return ENCODE_FAIL;
     }
 
@@ -353,7 +356,7 @@ int handle_sdt(
             offset.data.xm = instr[i].f1.field_data.address.address_data.register_offset.xm.index;
             break;
         case LITERAL:
-            printf(stderr, "Logical Error. Never Should have happened.");
+            fprintf(stderr, "Logical Error. Never Should have happened.");
             return ENCODE_FAIL;
     }
     instruction.offset = offset;
@@ -377,7 +380,8 @@ int handle_branch(
         case B:
             instruction.mode = UNCOND;
             instruction.data.simm26 = 
-                handle_literal(instr[i].f0.field_data.address.address_data.literal,sym_table);
+                handle_literal(instr[i].f0.field_data.address.address_data.literal,sym_table) -
+                instr[i].address;
             break;
         case BR:
             instruction.mode = REG_BRANCH;
@@ -387,9 +391,11 @@ int handle_branch(
             instruction.mode = COND;
             instruction.data.conditional.cond = instr[i].cond;
             instruction.data.conditional.simm19 = 
-                handle_literal(instr[i].f0.field_data.address.address_data.literal,sym_table);
+                handle_literal(instr[i].f0.field_data.address.address_data.literal,sym_table) -
+                instr[i].address;
+            break;
         default:
-            printf(stderr, "Invalid Instruction");
+            fprintf(stderr, "Invalid Instruction");
             return ENCODE_FAIL;
     }
 
@@ -412,8 +418,8 @@ int encode(
             case DIRECTIVE:
                 out = handle_directives(instrs,i,output,*curr_idx);
                 break;
-            case LABEL:
-                continue;   //dont have to assemble any binary
+            // case LABEL:
+            //     continue;   //dont have to assemble any binary
             case ADD:
             case ADDS:
             case SUB:
@@ -425,7 +431,7 @@ int encode(
                     out = handle_immediate(instrs, i,output,*curr_idx);
                 }
                 else{
-                    printf(stderr, "Invalid Instruction");
+                    fprintf(stderr, "Invalid Instruction");
                     return ENCODE_FAIL;
                 }
                 break;
@@ -436,7 +442,7 @@ int encode(
                     out = handle_immediate(instrs, i,output,*curr_idx);
                 }
                 else{
-                    printf(stderr, "Invalid Instruction");
+                    fprintf(stderr, "Invalid Instruction");
                     return ENCODE_FAIL;
                 }
                 break;
@@ -461,7 +467,7 @@ int encode(
                     out = handle_load_literal(instrs,i,output,*curr_idx,sym_table);
                 }
                 else{
-                    printf(stderr,"Invalid Instruction: Store cannot take a literal");
+                    fprintf(stderr,"Invalid Instruction: Store cannot take a literal");
                     return ENCODE_FAIL;
                 }
                 break;
@@ -519,13 +525,13 @@ int encode(
                 break;
             }
             case MNEG: {
-                Parser_Instruction alias_mneg = ALIAS_ARITH(MNEG); 
+                Parser_Instruction alias_mneg = ALIAS_ARITH(MSUB); 
                 out = ALIAS_ENCODE(alias_mneg); 
                 (*curr_idx)--; 
                 break;
             }
             default:
-                printf(stderr,"Unknown Mnemonic");
+                fprintf(stderr,"Unknown Mnemonic");
                 return ENCODE_FAIL;
         }
 
