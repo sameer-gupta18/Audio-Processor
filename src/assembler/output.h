@@ -7,4 +7,6 @@ void output(FILE* output, Assembled_Instruction* assembled_list, size_t count);
 
 static void write_word_le(FILE* output, uint32_t word);
 
+static uint32_t assemble_word(Assembled_Instruction *ins);
+
 #endif
