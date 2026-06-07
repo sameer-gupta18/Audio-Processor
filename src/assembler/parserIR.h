@@ -8,6 +8,7 @@
 typedef enum{
     DIRECTIVE,
     ADD,
+    LABEL,
     ADDS,
     SUB,
     SUBS,

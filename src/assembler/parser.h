@@ -11,7 +11,4 @@ int parser(
     Parser_Instruction* parsed_list
 );
 
-
-
-
 #endif

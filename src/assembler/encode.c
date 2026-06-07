@@ -418,8 +418,8 @@ int encode(
             case DIRECTIVE:
                 out = handle_directives(instrs,i,output,*curr_idx);
                 break;
-            // case LABEL:
-            //     continue;   //dont have to assemble any binary
+            case LABEL:
+                continue;   //dont have to assemble any binary
             case ADD:
             case ADDS:
             case SUB:
