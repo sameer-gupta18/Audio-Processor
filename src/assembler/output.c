@@ -1,7 +1,7 @@
 #include "output.h"
 #include <stdint.h>
 #define REGISTER_OFFSET_LITERAL 0x1Au
-#define LITTLE_ENDIAN_SHIFT 0xFFu
+#define LITTLE_ENDIAN_MASK 0xFFu
 
 static void write_word_le(FILE* output, uint32_t word);
 static uint32_t assemble_word(Assembled_Instruction *ins);
@@ -16,16 +16,16 @@ void output(FILE* output, Assembled_Instruction* assembled_list, size_t count) {
 
 }
 static uint32_t mask_simms(int32_t simm, uint8_t num){
-    return simm & (1 << num-1); 
+    return (uint32_t)simm & ((uint32_t)1 << num-1); 
 }
 
 // Write word to output file in little-endian format
 static void write_word_le(FILE* output, uint32_t word) {
     unsigned char bytes[4];
     bytes[0] = word & LITTLE_ENDIAN_SHIFT;
-    bytes[1] = (word >> 8) & LITTLE_ENDIAN_SHIFT;
-    bytes[2] = (word >> 16) & LITTLE_ENDIAN_SHIFT;
-    bytes[3] = (word >> 24) & LITTLE_ENDIAN_SHIFT;
+    bytes[1] = (word >> 8) & LITTLE_ENDIAN_MASK;
+    bytes[2] = (word >> 16) & LITTLE_ENDIAN_MASK;
+    bytes[3] = (word >> 24) & LITTLE_ENDIAN_MASK;
     fwrite(bytes, 1, 4, output);
 }
 
