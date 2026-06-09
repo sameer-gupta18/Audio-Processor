@@ -288,10 +288,12 @@ int64_t handle_literal(Address_Literal address, Sym_Table* sym_table){
         addr = address.data.int_address;
     }
     else{
+        fprintf(stderr, "Searching for label %s in encode\n", address.data.label);
         if (!search_label(sym_table,address.data.label,&addr)){
             fprintf(stderr, "Label %s is not found\n", address.data.label);
             // return ENCODE_FAIL; 
         }
+        fprintf(stderr,"Found address is 0x%lx", addr);
     }
     return addr;
 }
