@@ -214,7 +214,7 @@ static Parser_Field make_shift_field(Shift_Kind kind, uint32_t amount) {
     return f;
 }
 
-static Parser_Field make_literal_label_field(const char *label) {
+static Parser_Field make_literal_label_field(char *label) {
     Parser_Field f;
     f.field = ADDRESS;
     f.field_data.address.kind = LITERAL;
@@ -335,7 +335,7 @@ int parser(
 
         parsed->mnemonic = LABEL;
         parsed->num_fields = 0;
-        return 1;
+        return 0;
     }
 
     char *tokens[MAX_TOKENS];
@@ -352,7 +352,7 @@ int parser(
     if (parsed->mnemonic == DIRECTIVE) {
         parsed->f0 = make_imm_field((int32_t)strtol(tokens[1], NULL, 0));
         parsed->num_fields = 1;
-        return 1;
+        return 0;
     }
 
     for (int i = 1; i < n; i++) {

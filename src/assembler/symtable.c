@@ -56,7 +56,7 @@ Sym_Table* symtable_init(void){
     return sym_table;
 }
 
-bool insert_address(Sym_Table* sym_table, char* label, uint64_t address){
+bool insert_address(Sym_Table* sym_table, char* label, uint32_t address){
     uint32_t index = hash_function_djb2(label, sym_table->capacity);
     Node* bucket = sym_table->buckets[index];
     Node* curr = bucket;

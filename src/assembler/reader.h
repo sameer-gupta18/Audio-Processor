@@ -11,7 +11,7 @@ extern int read_to_parse(
     FILE* input, 
     Parser_Instruction* parsed_list, 
     Sym_Table* sym_table,
-    uint64_t num_lines
+    uint64_t* num_instructions
 );
 
 #endif
