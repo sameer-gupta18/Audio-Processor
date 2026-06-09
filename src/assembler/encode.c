@@ -94,7 +94,7 @@ int handle_directives(
         return ENCODE_FAIL;
     }
     Special_Instruction out = {
-        instrs[i].f1.field_data.immediate
+        instrs[i].f0.field_data.immediate
     };
     Assembled_Instruction assembled_instr = {SPECIAL,.instruction_data.value=out};
     output[curr_idx] = assembled_instr;
@@ -283,17 +283,18 @@ int handle_register(
 }
 
 int64_t handle_literal(Address_Literal address, Sym_Table* sym_table){
-    uint64_t addr; 
+    int64_t addr; 
     if (address.literal_kind == LIT_ADDR){
-        addr = address.data.int_address;
+        addr = (int64_t)address.data.int_address;
     }
     else{
-        fprintf(stderr, "Searching for label %s in encode\n", address.data.label);
-        if (!search_label(sym_table,address.data.label,&addr)){
+        uint64_t found_addr;
+
+        if (!search_label(sym_table,address.data.label,&found_addr)){
             fprintf(stderr, "Label %s is not found\n", address.data.label);
             // return ENCODE_FAIL; 
         }
-        fprintf(stderr,"Found address is 0x%lx", addr);
+        addr = (int64_t) found_addr;
     }
     return addr;
 }
@@ -333,7 +334,6 @@ int handle_sdt(
     bool u = 0;
 
     instruction.sf = instr[i].f0.field_data.reg.sf;
-    instruction.xn = instr[i].f1.field_data.reg.index;
     switch(instr[i].mnemonic){
         case LDR:
             instruction.l = 1;
@@ -356,20 +356,24 @@ int handle_sdt(
                 instruction.sf ? 
                 instr[i].f1.field_data.address.address_data.unsigned_offset.imm >> 3:
                 instr[i].f1.field_data.address.address_data.unsigned_offset.imm >> 2;
+                instruction.xn = instr[i].f1.field_data.address.address_data.unsigned_offset.xn.index;
             break;
         case PRE_INDEXED:
             offset.mode = INDEX;
             offset.data.index.i = 1;
             offset.data.index.simm9 = instr[i].f1.field_data.address.address_data.pre_post_index.simm;
+            instruction.xn = instr[i].f1.field_data.address.address_data.pre_post_index.xn.index;
             break;
         case POST_INDEXED:
             offset.mode = INDEX;
             offset.data.index.i = 0;
             offset.data.index.simm9 = instr[i].f1.field_data.address.address_data.pre_post_index.simm;
+            instruction.xn = instr[i].f1.field_data.address.address_data.pre_post_index.xn.index;
             break;
         case REGISTER_OFFSET:
             offset.mode = REG_OFFSET;
             offset.data.xm = instr[i].f1.field_data.address.address_data.register_offset.xm.index;
+            instruction.xn = instr[i].f1.field_data.address.address_data.register_offset.xn.index;
             break;
         case LITERAL:
             fprintf(stderr, "Logical Error. Never Should have happened.");
@@ -384,6 +388,15 @@ int handle_sdt(
     return ENCODE_OK;
 }
 
+int64_t branch_offset(int64_t target_addr, int64_t curr_addr) {
+    int64_t byte_offset = target_addr - curr_addr;
+    if (byte_offset % 4 != 0) {
+        fprintf(stderr, "Branch target is not 4-byte aligned\n");
+        exit(1);
+    }
+    return byte_offset / 4;  
+}
+
 int handle_branch(
     Parser_Instruction* instr,
     size_t i,
@@ -395,9 +408,11 @@ int handle_branch(
     switch(instr[i].mnemonic){
         case B:
             instruction.mode = UNCOND;
-            instruction.data.simm26 = 
-                handle_literal(instr[i].f0.field_data.address.address_data.literal,sym_table) -
-                (int64_t) instr[i].address;
+            instruction.data.simm26 =
+            branch_offset(
+                handle_literal(instr[i].f0.field_data.address.address_data.literal, sym_table),
+                (int64_t) instr[i].address
+            );
             break;
         case BR:
             instruction.mode = REG_BRANCH;
@@ -406,9 +421,11 @@ int handle_branch(
         case BCOND:
             instruction.mode = COND;
             instruction.data.conditional.cond = instr[i].cond;
-            instruction.data.conditional.simm19 = 
-                handle_literal(instr[i].f0.field_data.address.address_data.literal,sym_table) -
-                instr[i].address;
+            instruction.data.conditional.simm19 =
+            branch_offset(
+                handle_literal(instr[i].f0.field_data.address.address_data.literal, sym_table),
+                (int64_t) instr[i].address
+            );
             break;
         default:
             fprintf(stderr, "Invalid Instruction");

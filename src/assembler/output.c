@@ -16,7 +16,7 @@ void output(FILE* output, Assembled_Instruction* assembled_list, size_t count) {
 
 }
 static uint32_t mask_simms(int32_t simm, uint8_t num){
-    return (uint32_t)simm & ((uint32_t)1 << (num-1)); 
+    return (uint32_t)simm & ((1u << num)-1); 
 }
 
 // Write word to output file in little-endian format
@@ -140,7 +140,10 @@ static uint32_t assemble_word(Assembled_Instruction *ins) {
 
             switch (br->mode) {
                 case UNCOND: {
+                    uint32_t x = (uint32_t)(mask_simms(br->data.simm26, 26));
                     word |= (uint32_t)(mask_simms(br->data.simm26, 26));
+                    fprintf(stderr, "0x%x\n",x);
+                    fprintf(stderr,"the simm19 store value: %x",br->data.simm26);
                     break;
                 }
                 case COND: {
