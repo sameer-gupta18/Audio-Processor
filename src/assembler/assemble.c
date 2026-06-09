@@ -1,12 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "assert.h"
 #include "encode.h"
 #include "output.h"
 #include "parserIR.h"
 #include "reader.h"
 #include "symtable.h"
 #define INSTRUCTION_LIST_BUFFER 100
-#define ALLOCATE_IR_LIST(IR) calloc(num_instructions+INSTRUCTION_LIST_BUFFER, sizeof(IR))
+#define ALLOCATE_IR_LIST(IR) calloc(n_lines+INSTRUCTION_LIST_BUFFER, sizeof(IR))
 
 // Cleanup if exit
 void cleanup(
@@ -42,26 +43,31 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
     // Count number of instructions and rewind
-    uint64_t num_instructions = num_lines(input_file);
+    uint64_t n_lines = num_lines(input_file);
+    uint64_t num_instructions; //not_including labels
     rewind(input_file);
     // Allocate heap space for IR lists and symbol table
 
     Parser_Instruction* parsed_list = ALLOCATE_IR_LIST(Parser_Instruction);
     Assembled_Instruction* assembled_list = ALLOCATE_IR_LIST(Assembled_Instruction);
     Sym_Table* sym_table = symtable_init();
+    assert(sym_table!=NULL); 
+    assert(parsed_list!=NULL);
+    assert(assembled_list!=NULL); 
     
     // Read and parse instructions
-    if(read_to_parse(input_file,  parsed_list, sym_table, num_instructions)!=0){
+    if(read_to_parse(input_file,  parsed_list, sym_table, &num_instructions)!=0){
         cleanup(parsed_list, assembled_list, sym_table, input_file, output_file);
         return EXIT_FAILURE; 
     }
     //Encode instructions
-    if (encode(sym_table, parsed_list, num_instructions, assembled_list, 0)!=0){
+    size_t curr_index = 0; 
+    if (encode(sym_table, parsed_list, num_instructions, assembled_list, &curr_index)!=0){
         cleanup(parsed_list, assembled_list, sym_table, input_file, output_file);
         return EXIT_FAILURE; 
     }
     //Output to binary file
-    output(output_file, assembled_list);
+    output(output_file, assembled_list, curr_index);
     cleanup(parsed_list, assembled_list, sym_table, input_file, output_file);
     return EXIT_SUCCESS;
 }

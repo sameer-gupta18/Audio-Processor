@@ -1,11 +1,11 @@
 #include "reader.h"
 #include <stdio.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "parser.h"
 #include <ctype.h>
-
+#include <stdbool.h>
+#include "parserIR.h"
 #include "symtable.h"
 
 #define MAX_LINE_LEN 1024
@@ -25,6 +25,9 @@ extern uint64_t num_lines(FILE* input){
             isEmpty = false; 
         }
         ch = fgetc(input); 
+        if(ch==EOF && !isEmpty){
+            count++;
+        }
     }
     return count; 
 }
@@ -34,27 +37,32 @@ extern int read_to_parse(
     FILE *input,
     Parser_Instruction *parsed_list, 
     Sym_Table *sym_table,
-    uint64_t num_lines
+    uint64_t *num_instructions
 ){
     char* buffer = malloc(MAX_LINE_LEN * sizeof(char));
-    // Loop over number of instructions
-    for(uint64_t i = 0; i < num_lines; i++){
-       if(fgets(buffer, MAX_LINE_LEN, input)==NULL){
-        free(buffer);
-        return READ_FAIL; 
-       }  
-       size_t len = strlen(buffer);
-       if(buffer[len-1]!='\n') {
-        fprintf(stderr, "Could not read line. Buffer overrun.");
-        free(buffer);
-        return READ_FAIL; 
-       }
-       buffer[len-1]='\0'; 
-       if (parser(buffer, sym_table , parsed_list+i)!=0){
-        free(buffer);
-        return READ_FAIL; 
-       }
+    uint64_t addr = 0; 
+    uint64_t count = 0;
+    while(fgets(buffer, MAX_LINE_LEN, input)!=NULL){
+        size_t len = strlen(buffer);
+        if(buffer[len-1]!='\n') {    
+            fprintf(stderr, "Could not read line. Buffer too small.");
+            free(buffer);
+            return READ_FAIL; 
+        }
+        if(buffer[0]=='\n'){
+            continue; 
+        }
+        buffer[len-1]='\0'; 
+        if (parser(buffer, sym_table , parsed_list+count,addr)<0){
+            free(buffer);
+            return READ_FAIL; 
+        }
+        if(parsed_list[count].mnemonic != LABEL){
+            addr+=4; 
+        }
+        count++; 
     }
     free(buffer);
+    *num_instructions = count; 
     return READ_OK; 
 }

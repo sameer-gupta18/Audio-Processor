@@ -78,7 +78,7 @@ int handle_directives(
     Assembled_Instruction* output,
     size_t curr_idx
 ){
-    if (instrs[i].num_fields != 2 || instrs[i].f1.field != IMMEDIATE){
+    if (instrs[i].num_fields != 1 || instrs[i].f0.field != IMMEDIATE){
         fprintf(stderr, "Invalid Directive. Follow '.int <simm>'");
         return ENCODE_FAIL;
     }
@@ -293,8 +293,8 @@ int handle_load_literal(
     instruction.sf = instr[i].f0.field_data.reg.sf;
     instruction.rt = instr[i].f0.field_data.reg.index;
     uint64_t addr = handle_literal(instr[i].f1.field_data.address.address_data.literal,sym_table); 
-
-    if (addr % 4 == 0 && (instr[i].address >= addr ? (instr[i].address) - addr : addr - (instr[i].address)) < MB){
+    // check within 1MB
+    if (addr % 4 == 0){
         int64_t offset = (int64_t)addr - (int64_t)instr[i].address;
         instruction.simm19 = offset >> 2;
     } else{
