@@ -1,30 +1,60 @@
-\documentclass[11pt]{article}
-
-\usepackage{fullpage}
-
+\documentclass{article}
+\usepackage[a4paper,margin=1in,top=0.3in]{geometry}
 \begin{document}
+\vspace*{-1em}
+\noindent{\large\bfseries Group 9 - Interim Report}
 
-\title{ARM Checkpoint... }
-\author{TODO}
+\vspace{0.3em}
 
-\maketitle
+\section{Project Co-ordination and Group Delegation}
 
-\section{Group Organisation}
+Our group started working on the Emulator with an in-person meeting where we discussed the requirements of the project specification and determined the set-up code we would need. This included segmenting the \verb|/src| directory into two separate \verb|/src/emulator| and \verb|/src/assembler| sub-directories. We then coded a few basic structs that model the state of the CPU (incl. the registers and program counter) as well as the main 2MB memory. Lastly, using function prototypes, we drafted the API of our modules. This left us with modules for loading binary data, instruction fetch/decode, and the various execute methods. 
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+Having now determined the interfaces of our modules, it became easier to delegate work amongst our team-members as it meant we could work on our chosen parts without being bottlenecked by the progress of others or accidentally breaking the entire system. We then divided the work as follows: Aditya worked on the binary file loader, Anish worked on instruction fetch and decode, and Pratyush and Sameer worked on the instruction execute functions. We then set a hard deadline for these deliverables on Wednesday, 27th June, following which we integrated and tested the emulator. From the initial meeting upto the writing of this report, we have largely coordinated our efforts primarily through face-to-face discussions, with a member writing short minutes of every meeting, but also through a Whatsapp group-chat for smaller details.  
 
-\section{Implementation Strategies}
+Further, to keep our codebase organised and maintainable, we have followed the typical programmer convention of committing each modular feature to its own git branch. Once we have completed a feature and are confident that it works, we create a Merge Request, that upon review of another teammate, merges that branch into master. Although our commit messages currently are relatively concise and descriptive, we identified that we can further improve our commit hygiene by giving each message short tags such as "feature", "refactor", or "fix." Also, rather than simple text-based notes, we are also planning on using more powerful planning software, such as Trello boards, to improve our communication and record pending tasks. 
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+
+\section{Group Reflection}
+
+Throughout the development of our ARM Emulator in C, our group has worked effectively as a team and made substantial progress in a relatively short period.  As a team of four, we successfully designed, implemented, tested, and integrated all the major components of our emulator in under a week. While there are still certain formatting and error-handling adjustments to be made, we are satisfied with both our pace and the quality of our work so far.
+
+As mentioned earlier,  at the start of the project, we collectively discussed the overall architecture and agreed on different modules and data structures. After establishing our design, we created a basic emulator setup on a separate \verb|setup| branch and then everyone worked on separate features on their own branches. Throughout the process, we frequently reviewed each other's code, provided feedback on every commit, and helped resolve bugs. We made sure that everyone was working on the most recent codebase, as due to the convoluted nature of the emulator, resolving merge conflicts would have been tough. Additionally, people with smaller tasks assisted others with code reviewing and debugging.
+
+Although development was largely decentralised, we regularly monitored each other's branches and incorporated any shared utilities, such as global variables or helper functions, into our own sections. This made integration relatively smooth and required less debugging than expected, as each unit had been tested carefully in isolation. In fact, we spent less than an hour debugging our final integration before passing all 500+ test cases! Moreover, our group has been highly cohesive and supportive. Members willing to help one another through difficult issues and have been constructive and respectful, making it easier to solve problems collectively.
+
+However, for the remaining stages of the project, there are still several improvements we could make. Although the workload was broadly shared equally, the GitLab commit history does not necessarily reflect equal contribution; we should aim for more balanced visibility of contributions and clearer documentation and commit messages. It would also be beneficial to adopt more of a top-down development approach by collectively defining shared functions, variables, and interfaces at the beginning rather than independently creating similar functionality and consolidating it later. In addition, more frequent progress updates and meetings would prevent situations where some members are unaware of changes that would reduce the likelihood of merge conflicts. 
+
+Overall, our group is functioning well via the combination of clear task allocation, strong communication, and mutual support. By implementing the above changes, we believe we can work even more efficiently for the remaining parts of the project. 
+
+\section{Emulator Implementation}
+
+The emulator is designed in a modular manner, keeping in mind the architecture of the of the ARMv8. The emulator loop consists of the following three phases: instruction fetch, instruction decode, and instruction execute. 
+
+This is complimented by load, which loads the binary file to memory, and output, which returns the result of the emulator as a file or as system output.
+The fetch stage is responsible for loading 32-bit instructions from memory using little-endian ordering. This utilises an global helper function in load32 which ensures consistent behaviour during memory access.
+
+The decode phase is responsible for identifying the instruction type, by matching bit patterns to standard ARMv8 instructions. Once identified, the relevant fields are extracted using bit-masking, and passed into their respective ‘execute’ functions.
+
+The execute stage is further divided into the 5 instruction sets in A64 architecture: 
+Data Processing (Immediate), Data Proecssing (Register), Single Data Transfer, Load Literal, and Branch Instructions. 
+
+Each is implemented by its own set of functions. Some subtasks, such as setting flags and load and store functions were implemented as global functions, reducing code duplicity.
+We designed our emulator keeping in mind the components that can be reused for the assembler. In particular, these include:
+\begin{itemize}
+    \item For the assembler we have designed a struct-based Internal Representation for instructions based on it bitwise encodings. In the future, we plan on integrating this into the emulator to make the \verb|decode| function calls to the various \verb|execute| functions more concise. 
+    \item The modular structure of the emulator, dividing the execute phase into respective instruction types, will be mirrored by the assembler.
+    \item While the emulator extracts bits from the 32-bit instruction, the assembler will from the 32-bit instruction using the respective fields. This enables us to reuse parts certain utilities, e.g. as sign-extension, and repurpose it to our assembler.
+\end{itemize}
+
+Hence, by designing our emulator modularly, we have been able to easily trace and debug errors in our codebase. We intend to bring this forward to our assembler implementation to maximise efficiency and aid simplicity.
+
+
+\section{Future Challenges and Preparation}
+
+Having completed the emulator part of the C Programming Group Project, we are now working on developing an assembler. We have already divided the work into four sections as follows: Aditya being delegated the task of filling in a given output file with the machine code representing the assembly source file, Pratyush will handle the parsing of assembly language instructions, Sameer will implement the encoder by translating each assembly instruction into its binary representation, and Anish will create a hashmap which will be used for looking up labels in the assembler. With respect to the assembler, the main challenges include: handling the various instruction formats, especially because the assembler must correctly parse instructions that include registers, immediates, and different addressing modes; correctly handling labels as branch and load instructions may reference labels defined elsewhere in the file; testing against the provided test suite and custom test cases. To reduce the risk of errors, just as before with the emulator, we are breaking the assembler program into smaller and more manageable functions which will also aid in testing each component.
+
+Looking further ahead, we will need to create an assembly program that flashes a LED on a breadboard connected to a Raspberry Pi, making sure the emulator and assembler implemented work together reliably. The main difficulty here will be moving purely in software in the first two parts to running code on the Raspberry Pi hardware and interacting with its GPIO pins. Furthermore, we will also need to think of a suitable extension to be implemented as the final part of the project. As of now, we are debating whether to pursue a software-based (e.g. a toy version of C that implements Rust's ownership system) or hardware-based extension (e.g. using LCDs to display sensor animations.) We aim to keep reflecting upon the completion of each part of the project, keeping in mind what we may need to improve on the planning and execution of the specific part, and ensure that we complete our work within internal deadlines. Moreover, we will continue to attend the weekly mentor meetings, noting down the feedback and advice we received during them as well as reflecting on our work so far and sharing our thoughts with our mentor. 
 
 \end{document}
+
