@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -218,7 +219,7 @@ static Parser_Field make_literal_label_field(const char *label) {
     f.field = ADDRESS;
     f.field_data.address.kind = LITERAL;
     f.field_data.address.address_data.literal.literal_kind = LIT_LABEL;
-    f.field_data.address.address_data.literal.data.label = strdup(label);
+    f.field_data.address.address_data.literal.data.label = label;
     return f;
 }
 
@@ -374,7 +375,15 @@ int parser(
 
             i++;
         } else {
-            f = parse_normal_field(tokens[i]);
+            if (parsed->mnemonic == B || parsed->mnemonic == BCOND) {
+                if (tokens[1][0] == '#') {
+                    f = make_literal_addr_field((uint64_t)parse_immediate(tokens[1]));
+                } else {
+                    f = make_literal_label_field(tokens[1]);
+                }
+            } else {
+                f = parse_normal_field(tokens[i]);
+            }
         }
 
         set_field(parsed, parsed->num_fields, f);
