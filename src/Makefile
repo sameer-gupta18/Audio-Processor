@@ -11,9 +11,9 @@ all: assemble emulate
 
 EMULATE_OBJS = \
 	emulator/emulate.o \
-	emulator/load.o \
-	emulator/decode.o \
-	emulator/output.o \
+	emulator/load/load.o \
+	emulator/decode/decode.o \
+	emulator/output/output.o \
 	emulator/processor.o \
 	emulator/utils.o \
 	emulator/execute/branch.o \
