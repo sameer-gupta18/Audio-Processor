@@ -1,5 +1,10 @@
 #include "output.h"
-#include <stdio.h>
+#include <stdint.h>
+#define REGISTER_OFFSET_LITERAL 0x1Au
+#define LITTLE_ENDIAN_SHIFT 0xFFu
+
+static void write_word_le(FILE* output, uint32_t word);
+static uint32_t assemble_word(Assembled_Instruction *ins);
 
 void output(FILE* output, Assembled_Instruction* assembled_list, size_t count) {
 
@@ -10,14 +15,17 @@ void output(FILE* output, Assembled_Instruction* assembled_list, size_t count) {
     }
 
 }
+static uint32_t mask_simms(int32_t simm, uint8_t num){
+    return simm & (1 << num-1); 
+}
 
 // Write word to output file in little-endian format
 static void write_word_le(FILE* output, uint32_t word) {
     unsigned char bytes[4];
-    bytes[0] = word & 0xFF;
-    bytes[1] = (word >> 8) & 0xFF;
-    bytes[2] = (word >> 16) & 0xFF;
-    bytes[3] = (word >> 24) & 0xFF;
+    bytes[0] = word & LITTLE_ENDIAN_SHIFT;
+    bytes[1] = (word >> 8) & LITTLE_ENDIAN_SHIFT;
+    bytes[2] = (word >> 16) & LITTLE_ENDIAN_SHIFT;
+    bytes[3] = (word >> 24) & LITTLE_ENDIAN_SHIFT;
     fwrite(bytes, 1, 4, output);
 }
 
@@ -63,8 +71,13 @@ static uint32_t assemble_word(Assembled_Instruction *ins) {
             word |= ((uint32_t)dpr->rm << 16);
 
             uint32_t operand = 0;
+            if (dpr->M) {
             operand |= (dpr->operand.multiply_operand.x ? 1u : 0u) << 5;
             operand |= dpr->operand.multiply_operand.ra;
+            }
+            else {
+                operand |= (uint32_t)dpr->operand.arith_logic_operand;
+            }
             word |= (operand << 10);
 
             word |= ((uint32_t)dpr->rn << 5);
@@ -87,11 +100,11 @@ static uint32_t assemble_word(Assembled_Instruction *ins) {
                     break;
                 }
                 case REG_OFFSET: {
-                    offset = (1u << 11) | ((uint32_t)sdt->offset.data.xm << 6);
+                    offset = (1u << 11) | ((uint32_t)sdt->offset.data.xm << 6) | REGISTER_OFFSET_LITERAL;
                     break;
                 }
                 case INDEX: {
-                    offset = ((uint32_t)sdt->offset.data.index.simm9 << 2)
+                    offset = ((uint32_t)(mask_simms(sdt->offset.data.index.simm9, 9)) << 2)
                             | ((uint32_t)(sdt->offset.data.index.i & 0x1u) << 1)
                             | 1u;
                     break;
@@ -109,7 +122,7 @@ static uint32_t assemble_word(Assembled_Instruction *ins) {
             Load_Literal *ld = &ins->instruction_data.load_literal;
             word |= ((uint32_t)ld->sf << 30);
             word |= (24u << 24);
-            word |= ((uint32_t)ld->simm19 << 5);
+            word |= ((uint32_t)(mask_simms(ld->simm19, 19)) << 5);
             word |= (uint32_t)ld->rt;
             break;
         }
@@ -127,15 +140,16 @@ static uint32_t assemble_word(Assembled_Instruction *ins) {
 
             switch (br->mode) {
                 case UNCOND: {
-                    word |= (uint32_t)br->data.simm26;
+                    word |= (uint32_t)(mask_simms(br->data.simm26, 26));
                     break;
                 }
                 case COND: {
-                    word |= ((uint32_t)br->data.conditional.simm19 << 5);
+                    word |= ((uint32_t)(mask_simms(br->data.conditional.simm19, 19)) << 5);
                     word |= (uint32_t)br->data.conditional.cond;
                     break;
                 }
                 case REG_BRANCH: {
+                    word |= (1u << 25);
                     word |= (0x1Fu << 16); 
                     word |= ((uint32_t)br->data.xn << 5);
                     break;
