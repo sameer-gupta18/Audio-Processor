@@ -219,7 +219,7 @@ static Parser_Field make_literal_label_field(char *label) {
     f.field = ADDRESS;
     f.field_data.address.kind = LITERAL;
     f.field_data.address.address_data.literal.literal_kind = LIT_LABEL;
-    f.field_data.address.address_data.literal.data.label = label;
+    f.field_data.address.address_data.literal.data.label = strdup(label);
     return f;
 }
 
@@ -327,7 +327,7 @@ int parser(
     if (colon != NULL) {
         *colon = '\0';
         trim(assembly_instruction);
-
+        fprintf(stderr, "Inserting %s\n", assembly_instruction); 
         if (!insert_address(symbol_table, assembly_instruction, current_address)) {
             fprintf(stderr, "Failed to insert label: %s\n", assembly_instruction);
             exit(EXIT_FAILURE);
@@ -380,6 +380,7 @@ int parser(
                     f = make_literal_addr_field((uint64_t)parse_immediate(tokens[1]));
                 } else {
                     f = make_literal_label_field(tokens[1]);
+                    fprintf(stderr, "Label address is %s\n",f.field_data.address.address_data.literal.data.label); 
                 }
             } else {
                 f = parse_normal_field(tokens[i]);
