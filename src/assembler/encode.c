@@ -9,10 +9,11 @@
 // Macros for alias instruction IR
 #define ALIAS_CMX(MNEM) {\
                     (MNEM),\
-                    RZR,\
+                    instrs[i].f0.field_data.reg.sf == 1 ? RZR : WZR,\
                     instrs[i].f0,\
                     instrs[i].f1,\
-                    .num_fields = 3,\
+                    instrs[i].f2,\
+                    .num_fields = 4,\
                     instrs[i].address,\
                     instrs[i].cond\
                 };
@@ -56,14 +57,16 @@
 
 #define ALIAS_TST(){\
                     ANDS,\
-                    RZR,\
+                    instrs[i].f0.field_data.reg.sf == 1 ? RZR : WZR,\
                     instrs[i].f0,\
                     instrs[i].f1,\
-                    .num_fields = 3,\
+                    instrs[i].f2,\
+                    4,\
                     instrs[i].address,\
                     instrs[i].cond\
                 };
 
+                
 static Parser_Field RZR = {
                     REGISTER,
                     .field_data.reg = {
@@ -72,9 +75,17 @@ static Parser_Field RZR = {
                     }
                 };
 
+static Parser_Field WZR = {
+                    REGISTER,
+                    .field_data.reg = {
+                        0,
+                        XZR
+                    }
+                };
+
 int handle_directives(
     Parser_Instruction* instrs,
-    size_t i,
+    size_t i, 
     Assembled_Instruction* output,
     size_t curr_idx
 ){
@@ -271,13 +282,16 @@ int handle_register(
 
 }
 
-uint64_t handle_literal(Address_Literal address, Sym_Table* sym_table){
+int64_t handle_literal(Address_Literal address, Sym_Table* sym_table){
     uint64_t addr; 
     if (address.literal_kind == LIT_ADDR){
         addr = address.data.int_address;
     }
     else{
-        search_label(sym_table,address.data.label,&addr);
+        if (!search_label(sym_table,address.data.label,&addr)){
+            fprintf(stderr, "Label %s is not found\n", address.data.label);
+            // return ENCODE_FAIL; 
+        }
     }
     return addr;
 }
@@ -381,7 +395,7 @@ int handle_branch(
             instruction.mode = UNCOND;
             instruction.data.simm26 = 
                 handle_literal(instr[i].f0.field_data.address.address_data.literal,sym_table) -
-                instr[i].address;
+                (int64_t) instr[i].address;
             break;
         case BR:
             instruction.mode = REG_BRANCH;
