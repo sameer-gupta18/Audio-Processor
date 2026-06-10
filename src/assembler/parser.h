@@ -8,8 +8,8 @@
 int parser(
     char* assembly_instruction, 
     Sym_Table *symbol_table, 
-    Parser_Instruction* parsed_list
+    Parser_Instruction* parsed_list,
+    uint32_t current_address
 );
-
 
 #endif

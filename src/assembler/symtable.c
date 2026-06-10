@@ -87,7 +87,7 @@ bool insert_address(Sym_Table* sym_table, char* label, uint32_t address){
     return true; 
 }
 
-bool search_label(Sym_Table* sym_table, char* label, uint32_t*out){
+bool search_label(Sym_Table* sym_table, char* label, uint64_t*out){
     uint32_t index = hash_function_djb2(label, sym_table->capacity);
     Node* curr = sym_table->buckets[index];
     while(curr!=NULL){

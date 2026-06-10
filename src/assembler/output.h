@@ -3,6 +3,6 @@
 #include "assembleIR.h"
 #include <stdio.h>
 
-void output(FILE* output, Assembled_Instruction* assembled_list);
+extern void output(FILE* output, Assembled_Instruction* assembled_list, size_t count);
 
 #endif

@@ -1,24 +1,56 @@
+#ifndef ASSEMBLE_IR
+#define ASSEMBLE_IR
 #include <stdint.h>
+#include <stdbool.h>
+#include "utils.h"
 
-typedef enum {DPI, DPR, SDT, LOAD, BRANCH} instruction_kind; 
+typedef enum {DPI, DPR, SDT, LOAD, BRANCH, SPECIAL} instruction_kind; 
 typedef enum {UNCOND, COND, REG_BRANCH} branch_type; 
 typedef enum {REG_OFFSET, INDEX, UNSIGNED} sdt_type; 
+
+typedef struct {
+    bool sh;
+    uint32_t imm12;
+    uint8_t rn;
+} Immediate_Arithmetic;
+
+typedef struct {
+    uint8_t hw;
+    uint32_t imm16;
+} Immediate_Wide_Move;
 
 typedef struct {
     uint8_t sf;
     uint8_t opc;
     uint8_t opi; 
-    uint32_t operand; 
+    union {
+        Immediate_Arithmetic immediate_arithmetic;
+        Immediate_Wide_Move immediate_widemove;
+    } operand;
     uint8_t rd; 
 } DP_Immediate;
+
+typedef struct {
+    bool first_bit;
+    uint8_t shift;
+    bool n; 
+} Register_Operation;
+
+typedef struct {
+    bool x;
+    uint8_t ra;
+} Register_Multiply;
 
 typedef struct {
     uint8_t sf;
     uint8_t opc;
     uint8_t M; 
-    uint8_t opr;
+    Register_Operation opr;
     uint8_t rm; 
-    uint8_t operand; 
+    union {
+        uint8_t arith_logic_operand;
+        Register_Multiply multiply_operand;
+    } operand; 
     uint8_t rn;
     uint8_t rd; 
 } DP_Register; 
@@ -39,9 +71,9 @@ typedef struct{
 
 typedef struct{
     uint8_t sf; 
-    uint8_t u;
-    uint8_t l;
-    Addressing_Mode operand;
+    bool u;
+    bool l;
+    Addressing_Mode offset;
     uint8_t xn;
     uint8_t rt;
 } Single_Data; 
@@ -54,18 +86,22 @@ typedef struct {
 
 typedef struct{
     int32_t simm19;
-    uint8_t cond;
+    conds cond;
 } Conditional_Branch; 
 
 
 typedef struct{
     branch_type mode; 
     union {
-        int32_t simm26;
-        uint8_t xn;
-        Conditional_Branch conditional;
+        int32_t simm26; //unconditional
+        uint8_t xn; //register
+        Conditional_Branch conditional; //conditional
     } data; 
 } Branch_Instruction; 
+
+typedef struct{
+    int32_t value;
+} Special_Instruction;
 
 typedef struct{
     instruction_kind kind; 
@@ -75,5 +111,7 @@ typedef struct{
         Single_Data sdt;
         Load_Literal load_literal;
         Branch_Instruction branch;
+        Special_Instruction value;
     } instruction_data;
 } Assembled_Instruction; 
+#endif 

@@ -11,8 +11,9 @@ all: assemble emulate
 
 EMULATE_OBJS = \
 	emulator/emulate.o \
-	emulator/load.o \
-	emulator/output.o \
+	emulator/load/load.o \
+	emulator/decode/decode.o \
+	emulator/output/output.o \
 	emulator/processor.o \
 	emulator/utils.o \
 	emulator/execute/branch.o \
@@ -21,11 +22,21 @@ EMULATE_OBJS = \
 	emulator/execute/register.o \
 	emulator/execute/single_data_transfer.o
 
+ASSEMBLE_OBJS = \
+	assembler/assemble.o \
+	assembler/encode.o \
+	assembler/output.o \
+	assembler/parser.o \
+	assembler/reader.o \
+	assembler/symtable.o \
+# 	asssembler/
+# 	asssembler/util.o \
 # Linking Rules:
-assemble: assemble.o
+assemble: $(ASSEMBLE_OBJS)
+	$(CC) $(CFLAGS) -o $@ $(ASSEMBLE_OBJS) 
 emulate: $(EMULATE_OBJS)
 	$(CC) $(CFLAGS) -o $@ $(EMULATE_OBJS)
 
 clean:
-	$(RM) $(EMULATE_OBJS) assemble.o assemble emulate
+	$(RM) $(EMULATE_OBJS) $(ASSEMBLE_OBJS) assemble emulate
 	

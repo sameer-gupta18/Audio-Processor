@@ -1,14 +1,44 @@
 #ifndef PARSER_IR_H
 #define PARSER_IR_H
+#include <iso646.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "utils.h"
 
 typedef enum{
+    DIRECTIVE,
     ADD,
+    LABEL,
     ADDS,
     SUB,
-    DIRECTIVE
-    // and many more
+    SUBS,
+    CMP,
+    CMN,
+    NEG,
+    NEGS,
+    AND,
+    ANDS,
+    BIC,
+    BICS,
+    EOR,
+    ORR,
+    EON,
+    ORN,
+    TST,
+    MOVK,
+    MOVN,
+    MOVZ,
+    MOV,
+    MVN,
+    MADD,
+    MSUB,
+    MUL,
+    MNEG,
+    B,
+    BCOND,
+    BR,
+    STR,
+    LDR
 } Mnemonic; 
 
 
@@ -25,10 +55,10 @@ typedef struct{
 } Parser_Register;
 
 typedef enum{
-    LSL,
-    LSR,
-    ASR,
-    ROR
+    LSL = 0,
+    LSR = 1,
+    ASR = 2,
+    ROR = 3
 } Shift_Kind;
 
 typedef struct{
@@ -70,16 +100,19 @@ typedef struct{
         Parser_Address address;
         Parser_Register reg;
         Parser_Shift shift; 
-        int64_t immediate;
+        int32_t immediate;  //Possibly 64 bit
     } field_data;
 } Parser_Field;
 
 typedef struct{
     Mnemonic mnemonic;
-    Parser_Field fields[4];
+    Parser_Field f0;
+    Parser_Field f1;
+    Parser_Field f2;
+    Parser_Field f3;
     uint8_t num_fields;
     uint32_t address;
-    uint8_t cond; // if b.cond
+    conds cond; // if b.cond
 } Parser_Instruction;
 
 #endif
