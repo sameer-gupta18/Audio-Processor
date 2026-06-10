@@ -311,7 +311,6 @@ int handle_load_literal(
     instruction.rt = instr[i].f0.field_data.reg.index;
     uint64_t addr = handle_literal(instr[i].f1.field_data.address.address_data.literal,sym_table); 
     
-    // check within 1MB
     int64_t offset = (int64_t)addr - (int64_t)instr[i].address;
     if (addr % 4 == 0 && offset < MB && offset > -MB){
         instruction.simm19 = offset >> 2;
