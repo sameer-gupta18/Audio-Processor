@@ -5,7 +5,7 @@
 
 extern int open_and_configure(
     snd_pcm_t **pcm, 
-    char *device, 
+    const char *device, 
     snd_pcm_stream_t stream, 
     unsigned channels,
     unsigned rate,

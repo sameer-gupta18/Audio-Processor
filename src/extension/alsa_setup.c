@@ -1,11 +1,12 @@
 #include "alsa_setup.h"
 #include <alsa/error.h>
 #include <alsa/pcm.h>
+#include <stdio.h>
 
 // configure the current pcm stream for input or output 
 int open_and_configure(
     snd_pcm_t **out, 
-    char *device, 
+    const char *device, 
     snd_pcm_stream_t stream, 
     unsigned int channels,
     unsigned rate,
@@ -15,7 +16,7 @@ int open_and_configure(
     snd_pcm_hw_params_t *hw;
     int err = snd_pcm_open(&res, device, stream, 0);
     if(err < 0){
-        fprintf(stderr, "could not open device");
+        fprintf(stderr, "could not open device\n");
     
         return err; 
     }
@@ -47,6 +48,8 @@ int open_and_configure(
     }    
     if(temp_r!=rate){
         fprintf(stderr, "Rate mismatch. Init: %u, Curr: %u\n", rate, temp_r);
+        snd_pcm_close(res);
+        return -1;
     }
     *out = res;
     return 0; 

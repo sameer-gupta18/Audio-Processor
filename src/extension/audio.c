@@ -12,7 +12,7 @@
 
 void rt_setup(void){
     if (mlockall(MCL_CURRENT | MCL_FUTURE) != 0 ){
-        fprintf(stderr,"FATAL: mlockall failed %s\n",strerror(errno));
+        fprintf(stderr,"FATAL: mlockall failed: %s\n",strerror(errno));
         exit(1);
     }
 
@@ -44,7 +44,7 @@ void audio_loop(audio_ctx_t *ctx){
         }
 
         for (snd_pcm_uframes_t i = 0; i < period; i++){
-            ctx -> work_buf[i] = ctx -> in_buf[i] * SCALE_FACTOR;
+            ctx -> work_buf[i] = ctx -> in_buf[i] * IN_SCALE;
         }
 
         //The processing will be called here
@@ -53,9 +53,9 @@ void audio_loop(audio_ctx_t *ctx){
         for(snd_pcm_uframes_t i = 0; i < period; i++){
             float s = ctx -> work_buf[i];
             if (s > 1.0f) s = 1.0f;
-            else if (s < -1.0f) s = 1.0f;
+            else if (s < -1.0f) s = -1.0f;
 
-            int16_t v = (int16_t)(s / SCALE_FACTOR);
+            int16_t v = (int16_t)(s * OUT_SCALE);
             ctx -> out_buf[2*i] = v;            //left
             ctx -> out_buf[2 * i + 1] = v;      //right
         }

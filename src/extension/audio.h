@@ -7,7 +7,8 @@
 #include <stdint.h>
 
 #define PERIOD_DEFAULT 256
-#define SCALE_FACTOR (1.0f / 32768.0f)
+#define IN_SCALE (1.0f / 32768.0f)
+#define OUT_SCALE 32767.0f
 #define SCHED_PRIORITY 80
 
 typedef struct {
