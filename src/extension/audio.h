@@ -7,6 +7,8 @@
 #include <stdint.h>
 
 #define PERIOD_DEFAULT 256
+#define SCALE_FACTOR (1.0f / 32768.0f)
+#define SCHED_PRIORITY 80
 
 typedef struct {
     snd_pcm_t *capture;
