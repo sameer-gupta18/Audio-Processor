@@ -40,7 +40,7 @@ static void usage(const char *prog){
 }
 
 int main(int argc, char **argv){
-    const char *capture_dev = "plughw:CARD=Device";
+    const char *capture_dev = "plughw:CARD=SF558";
     const char *playback_dev = "plughw:CARD=Headphones";
     snd_pcm_uframes_t period_req = PERIOD_DEFAULT;
 
