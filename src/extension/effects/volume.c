@@ -1,0 +1,51 @@
+#include "effect.h"
+#include <math.h>
+#include <stdlib.h>
+
+#define NOISE_THRESHOLD 0.05
+
+typedef struct { int rate; } volume_state;
+
+static void volume_reset(fx *self) { (void)self;}
+
+static void volume_process(fx *self, float *buf, int n, float amt){
+    
+    (void)self;
+
+    float g = powf(10.0f, amt);  //max 10x volume
+    float max = 0;
+    for (int i = 0; i < n; i++){
+        if (fabs(buf[i]) > max){
+            max = fabs(buf[i]);
+        }
+    }
+    for (int i = 0; i < n; i++){
+        if (fabs(buf[i]) < NOISE_THRESHOLD * max && g != 0){
+            buf[i] *= 1/g;
+        }
+        else{
+            buf[i] *=  g;
+        }
+        
+    }
+}
+
+fx *fx_volume_create(int sample_rate){
+    fx *f = calloc(1, sizeof *f);
+    volume_state *s = calloc(1, sizeof *s);
+
+    if (!f || !s){
+        free(f);
+        free(s);
+        return NULL;
+    }
+
+    s -> rate = sample_rate;
+
+    f -> name = "VOLUME";
+    f -> reset = volume_reset;
+    f -> process = volume_process;
+    f -> state = s;
+    return f;
+
+}

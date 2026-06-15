@@ -1,6 +1,9 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 
+#include "state.h"
+#include "effects/effect.h"
+
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
 #include <stdatomic.h>
@@ -22,6 +25,9 @@ typedef struct {
     int16_t out_buf[PERIOD_DEFAULT * 2];
 
     atomic_int xruns;
+    shared_state *shared;
+    fx *effects[7];
+    int num_effects;
 } audio_ctx_t;
 
 void rt_setup(void);

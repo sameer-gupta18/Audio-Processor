@@ -1,7 +1,7 @@
 CC      = gcc
 CFLAGS  = -O2 -Wall -Wextra -std=gnu11
 LDFLAGS = -lasound -lpthread
-SRC     = main.c audio.c alsa_setup.c recover.c
+SRC     = main.c audio.c alsa_setup.c recover.c controls.c effects/volume.c
 BIN     = audiofx
 
 all: $(BIN)

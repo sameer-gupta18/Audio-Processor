@@ -1,5 +1,6 @@
 #include "audio.h"
 #include "recover.h"
+#include "state.h"
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +48,11 @@ void audio_loop(audio_ctx_t *ctx){
             ctx -> work_buf[i] = ctx -> in_buf[i] * IN_SCALE;
         }
 
-        //The processing will be called here
+        for (int e = 0; e < ctx->num_effects;e++){
+            if (ctx->effects[e]){
+                ctx->effects[e]->process(ctx->effects[e],ctx->work_buf,period,ctx->shared->intensity[e]);
+            }
+        }
 
 
         for(snd_pcm_uframes_t i = 0; i < period; i++){
