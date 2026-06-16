@@ -12,7 +12,7 @@ static void volume_process(fx *self, float *buf, int n, float amt){
     
     (void)self;
 
-    float g = powf(10.0f, amt);  //max 10x volume
+    float g = powf(10.0f, amt) - 1;  //max 9x volume
     for (int i = 0; i < n; i++){
             buf[i] *=  g;
     }

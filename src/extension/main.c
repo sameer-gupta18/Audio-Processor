@@ -66,13 +66,13 @@ int main(int argc, char **argv){
             intensity[i] = atomic_load(&state.intensity[i]);
             muted[i] = atomic_load(&state.muted[i]);
         }
-        printf("VOL %3d\n. Muted %d", intensity[0]/10, muted[0]);
-        printf("REV %3d\n. Muted %d", intensity[1]/10, muted[1]);
-        printf("effect 3 %3d\n. Muted %d", intensity[2]/10, muted[2]);
-        printf("effect 4 %3d\n. Muted %d", intensity[3]/10, muted[3]);
-        printf("effect 5 %3d\n. Muted %d", intensity[4]/10, muted[4]);
-        printf("effect 6 %3d\n. Muted %d", intensity[5]/10, muted[5]);
-        printf("effect 7 %3d\n. Muted %d", intensity[6]/10, muted[6]);
+        printf("VOL %3d. Muted %d\n", intensity[0]/10, muted[0]);
+        printf("REV %3d. Muted %d\n", intensity[1]/10, muted[1]);
+        printf("effect 3 %3d. Muted %d\n", intensity[2]/10, muted[2]);
+        printf("effect 4 %3d. Muted %d\n", intensity[3]/10, muted[3]);
+        printf("effect 5 %3d. Muted %d\n", intensity[4]/10, muted[4]);
+        printf("effect 6 %3d. Muted %d\n", intensity[5]/10, muted[5]);
+        printf("effect 7 %3d. Muted %d\n", intensity[6]/10, muted[6]);
         
         usleep(1000); // sleep for one thousandth second
     }

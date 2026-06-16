@@ -75,6 +75,8 @@ void audio_loop(audio_ctx_t *ctx){
                 ctx->prev_muted[e] = muted; 
                 if(!muted){
                     ctx->effects[e]->process(ctx->effects[e],ctx->work_buf,period,intensity);
+                } else{
+                    ctx->effects[e]->process(ctx->effects[e],ctx->work_buf,period,0);
                 }
             }
         }
