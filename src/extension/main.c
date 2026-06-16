@@ -12,7 +12,7 @@
 
 #define RATE 44100
 
-int main(int argc, char **argv){
+int main(void){
     const char *capture_dev = "plughw:CARD=SF558";
     const char *playback_dev = "plughw:CARD=Headphones";
 
@@ -58,8 +58,6 @@ int main(int argc, char **argv){
     }
     int intensity[NUM_EFFECTS] = {0};
     int muted[NUM_EFFECTS] = {0}; 
-    unsigned xruns = 0; 
-    int ticks = 0; 
     for(;;){
         controls_poll(&state); 
         for(int i = 0; i < NUM_EFFECTS; i++){

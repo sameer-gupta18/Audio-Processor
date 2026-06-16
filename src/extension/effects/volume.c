@@ -1,9 +1,9 @@
 #include "effect.h"
-#include <math.h>
+// #include <math.h>
 #include <stdlib.h>
 
 #define NOISE_THRESHOLD 0.05
-
+#define MAX_VOL_MULT 3
 typedef struct { int rate; } volume_state;
 
 static void volume_reset(fx *self) { (void)self;}
@@ -12,7 +12,7 @@ static void volume_process(fx *self, float *buf, int n, float amt){
     
     (void)self;
 
-    float g = powf(10.0f, amt) - 1;  //max 9x volume
+    float g = MAX_VOL_MULT * amt * amt;  //max 3x volume
     for (int i = 0; i < n; i++){
             buf[i] *=  g;
     }
