@@ -4,7 +4,7 @@
 #include <stdatomic.h>
 
 static void reprime_playback(snd_pcm_t *pcm, snd_pcm_uframes_t period) {
-    int16_t silence[PERIOD_DEFAULT * 2] = {0};
+    int16_t silence[PERIOD * 2] = {0};
     snd_pcm_writei(pcm, silence, period);
     snd_pcm_writei(pcm, silence, period);
 }
