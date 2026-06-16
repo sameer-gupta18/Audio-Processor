@@ -13,20 +13,8 @@ static void volume_process(fx *self, float *buf, int n, float amt){
     (void)self;
 
     float g = powf(10.0f, amt);  //max 10x volume
-    float max = 0;
     for (int i = 0; i < n; i++){
-        if (fabsf(buf[i]) > max){
-            max = fabsf(buf[i]);
-        }
-    }
-    for (int i = 0; i < n; i++){
-        if (fabsf(buf[i]) < NOISE_THRESHOLD * max && g != 0){
-            buf[i] *= 1/g;
-        }
-        else{
             buf[i] *=  g;
-        }
-        
     }
 }
 
