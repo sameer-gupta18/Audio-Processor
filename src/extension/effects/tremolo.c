@@ -2,6 +2,8 @@
 #include <math.h>
 #include <stdlib.h>
 
+#define TREMOLO_FACTOR 1.5
+
 typedef struct { 
     float curr_phase; // phase accumulator based on number of samples processed. 
     int rate; 
@@ -22,7 +24,7 @@ static void tremolo_process(fx *self, float *buf, int n, float amt){
         // 0.5 + 0.5 * sinf(..) shifts LCO back to [0,1] 
         
         float res = 0.5 + 0.5 * sinf(2.0f * (float)M_PI * s->curr_phase);
-        buf[i] *= 1.0f - (amt * res);  // 0 depth produces no effect
+        buf[i] *= 1.0f - (amt * TREMOLO_FACTOR * res);  // 0 depth produces no effect
         s->curr_phase += PHASE_INC; 
         if(s->curr_phase >= 1.0f){
             s->curr_phase = 0.0f; // wrap back to start of sine wave. 

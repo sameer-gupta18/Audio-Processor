@@ -49,7 +49,7 @@ static void chorus_process(fx *self, float *buf, int n, float amt) {
 
         float r = s->buf[idx0] * (1.0f - frac) + s->buf[idx1] * frac;
 
-        buf[i] = x + amt * r;
+        buf[i] = x + amt * r 8 2;
         
         s->phase += phase_inc;
         if (s->phase >= 1.0f) s->phase -= 1.0f;
