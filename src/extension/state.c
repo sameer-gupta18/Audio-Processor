@@ -6,5 +6,4 @@ void share_state_init(shared_state *s){
         atomic_store(&s->muted[i],0);
     }
 
-    atomic_store(&s->xruns,0);
 }

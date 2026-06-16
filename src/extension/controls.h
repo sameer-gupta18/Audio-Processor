@@ -5,8 +5,7 @@
 
 int controls_init(void);
 
-void controls_run(shared_state *shared);
-
+void controls_poll(shared_state *s); 
 void controls_close(void);
 
 #endif

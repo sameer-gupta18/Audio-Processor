@@ -10,7 +10,7 @@ static void reprime_playback(snd_pcm_t *pcm, snd_pcm_uframes_t period) {
 }
 
 void recover(audio_ctx_t *ctx, snd_pcm_t *pcm, int err, int is_playback) {
-    atomic_fetch_add(&ctx->xruns, 1);
+    atomic_fetch_add(&ctx->shared->xruns, 1);
     
     if (err == -EPIPE) {
         //XRun: underrun(playback) or overrun(capture)
