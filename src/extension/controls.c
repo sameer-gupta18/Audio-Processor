@@ -11,7 +11,6 @@
 #define TICKS_PER_DETENT 25
 #define POLL_US 1000
 #define BUTTON_DEBOUNCE_POLLS 20
-#define TEMP_CURR 2 //remove at the end
 typedef struct {
     unsigned int clk;
     unsigned int dt;
@@ -94,7 +93,7 @@ int controls_init(void){
     gpiod_line_settings_set_bias(p_settings, GPIOD_LINE_BIAS_PULL_UP);
 
     struct gpiod_line_config *line_cnfg = gpiod_line_config_new();
-    for(int i = 0; i < TEMP_CURR; i++){
+    for(int i = 0; i < NUM_ENCODERS; i++){
         unsigned clk[1] = {pins[i].clk};
         unsigned dt[1] = {pins[i].dt};
         unsigned sw[1] = {pins[i].sw}; 
@@ -119,7 +118,7 @@ int controls_init(void){
     enum gpiod_line_value vals[NUM_EFFECTS*3]; 
     gpiod_line_request_get_values(req, vals); 
     
-    for(int i =0; i < TEMP_CURR; i++){
+    for(int i =0; i < NUM_ENCODERS; i++){
         int clk_init = (vals[3*i]==GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;
         int dt_init = (vals[3*i+1]==GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;
         int sw_init = (vals[3*i+2]==GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;
@@ -135,7 +134,7 @@ int controls_init(void){
 void controls_poll(shared_state *s){
     enum gpiod_line_value vals[NUM_EFFECTS*3]; 
     gpiod_line_request_get_values(req, vals); 
-    for(int i =0; i < TEMP_CURR; i++){
+    for(int i =0; i < NUM_ENCODERS; i++){
         int clk_new = (vals[3*i]==GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;
         int dt_new = (vals[3*i+1]==GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;
         int sw_new = (vals[3*i+2]==GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;
