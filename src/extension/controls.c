@@ -23,7 +23,7 @@ static encoder_pins pins[NUM_ENCODERS] = {
     {8,  9,  11}, //reverb
     {23,24,25}, //distortion
     {16,20,21}, //tremolo
-    {4, 18, 7} //chorus
+    {13,19,26} //chorus
 };
 
 typedef struct {

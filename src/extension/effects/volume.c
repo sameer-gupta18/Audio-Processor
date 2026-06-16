@@ -6,7 +6,9 @@
 #define MAX_VOL_MULT 3
 typedef struct { int rate; } volume_state;
 
-static void volume_reset(fx *self) { (void)self;}
+static void volume_reset(fx *self) {
+    //
+}
 
 static void volume_process(fx *self, float *buf, int n, float amt){
     
