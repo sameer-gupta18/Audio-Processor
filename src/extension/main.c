@@ -66,11 +66,9 @@ int main(void){
         }
         printf("VOL %3d. Muted %d\n", intensity[0]/10, muted[0]);
         printf("REV %3d. Muted %d\n", intensity[1]/10, muted[1]);
-        printf("effect 3 %3d. Muted %d\n", intensity[2]/10, muted[2]);
-        printf("effect 4 %3d. Muted %d\n", intensity[3]/10, muted[3]);
-        printf("effect 5 %3d. Muted %d\n", intensity[4]/10, muted[4]);
-        printf("effect 6 %3d. Muted %d\n", intensity[5]/10, muted[5]);
-        printf("effect 7 %3d. Muted %d\n", intensity[6]/10, muted[6]);
+        printf("DIST %3d. Muted %d\n", intensity[2]/10, muted[2]);
+        printf("TREM %3d. Muted %d\n", intensity[3]/10, muted[3]);
+        printf("CHOR %3d. Muted %d\n", intensity[4]/10, muted[4]);
         
         usleep(1000); // sleep for one thousandth second
     }

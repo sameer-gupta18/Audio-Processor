@@ -2,8 +2,7 @@
 #define STATE_H
 #include <stdatomic.h>
 
-#define NUM_EFFECTS 7 
-#define VOLUME_IDX 0
+#define NUM_EFFECTS 5
 typedef struct {
     _Atomic int intensity[NUM_EFFECTS];
     _Atomic int muted[NUM_EFFECTS];

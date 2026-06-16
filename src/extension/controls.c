@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <stdatomic.h>
 
-#define NUM_ENCODERS 7
+#define NUM_ENCODERS 5
 #define TICKS_PER_DETENT 25
 #define POLL_US 1000
 #define BUTTON_DEBOUNCE_POLLS 20
@@ -20,7 +20,10 @@ typedef struct {
 
 static encoder_pins pins[NUM_ENCODERS] = {
     {17, 27, 22}, // volume 
-    {2,  3,  4}, //reverb --unsure?
+    {8,  9,  11}, //reverb
+    {23,24,25}, //distortion
+    {16,20,21}, //tremolo
+    {4, 18, 7} //chorus
 };
 
 typedef struct {

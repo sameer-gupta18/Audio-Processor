@@ -12,5 +12,10 @@ struct fx {
 };
 
 fx *fx_volume_create(int sample_rate);
+fx *fx_reverb_create(int sample_rate);
+fx *fx_distortion_create(int sample_rate);
+fx *fx_tremolo_create(int sample_rate);
+fx *fx_chorus_create(int sample_rate);
+
 
 #endif
