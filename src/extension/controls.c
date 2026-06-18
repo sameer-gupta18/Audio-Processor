@@ -25,6 +25,7 @@ static encoder_pins pins[NUM_ENCODERS] = {
     {4,18,7} //chorus
 };
 
+// state of each individual encoder 
 typedef struct {
     int last_state;
     int acc;
@@ -46,7 +47,7 @@ static const int8_t quad_table[4][4] = {
 };
 
 static int encode_step(encoder_state *e, int clk, int dt){
-    uint8_t curr = (uint8_t)(clk<<1|dt); // need 00, 01, 10, 11 for curr CLK - DT state
+    uint8_t curr = (uint8_t)(clk<<1|dt); 
     int index1 = e->last_state;
     int index2 = curr;
 
@@ -117,7 +118,7 @@ int controls_init(void){
     }
     enum gpiod_line_value vals[NUM_EFFECTS*3]; 
     gpiod_line_request_get_values(req, vals); 
-    
+    // initialise all encoders 
     for(int i =0; i < NUM_ENCODERS; i++){
         int clk_init = (vals[3*i]==GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;
         int dt_init = (vals[3*i+1]==GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;
@@ -134,6 +135,7 @@ int controls_init(void){
 void controls_poll(shared_state *s){
     enum gpiod_line_value vals[NUM_EFFECTS*3]; 
     gpiod_line_request_get_values(req, vals); 
+    // loop over all encoders
     for(int i =0; i < NUM_ENCODERS; i++){
         int clk_new = (vals[3*i]==GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;
         int dt_new = (vals[3*i+1]==GPIOD_LINE_VALUE_ACTIVE) ? 1 : 0;

@@ -8,6 +8,7 @@
 #define NUM_COMBS 8
 #define NUM_ALLPASS 4
 
+// random numbers that are non multiples, non powers of two, and not evenly spaced
 static const int comb_lengths[8] = {1116,1188,1277,1356,1422,1491,1557, 1617};
 static const int all_pass_lengths[4] = {556,441,341,225};
 
@@ -31,7 +32,7 @@ typedef struct {
     int rate;
 } reverb_state ; 
 
-
+// ensures each comb tick is affected by the previous comb tick
 static inline float comb_tick(comb *c, float damp, float in, float fb) {
     float out = c->buf[c->ind];
     c->store = out * (1.0f - damp) + (c->store * damp);
@@ -39,7 +40,7 @@ static inline float comb_tick(comb *c, float damp, float in, float fb) {
     if(++c->ind >= c->len) c->ind = 0;
     return out;
 }
-
+// serial processing of each tick - blends different waves together
 static inline float allpass_tick(allpass *a, float in) {
     float bufout = a->buf[a->ind];
     a->buf[a->ind] = in + bufout * ALLPASS_COEFFICIENT;
@@ -121,5 +122,4 @@ fx *fx_reverb_create(int sample_rate){
     f -> process = reverb_process;
     f -> state = s;
     return f;
-
 }

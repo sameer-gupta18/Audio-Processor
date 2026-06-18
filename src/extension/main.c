@@ -14,6 +14,7 @@
 #define RATE 44100
 
 int main(void){
+    // set up I/O devices
     const char *capture_dev = "plughw:CARD=SF558";
     const char *playback_dev = "plughw:CARD=Headphones";
 
@@ -25,12 +26,30 @@ int main(void){
     ctx.shared = &state;
 
     snd_pcm_uframes_t cap_period = PERIOD;
-    if(open_and_configure(&ctx.capture, capture_dev, SND_PCM_STREAM_CAPTURE,1,RATE,cap_period) < 0){
+    if(
+        open_and_configure(
+        &ctx.capture, 
+        capture_dev,
+         SND_PCM_STREAM_CAPTURE,
+         1,
+         RATE,
+         cap_period) < 0
+        )
+    {
         return EXIT_FAILURE;
     }
 
     snd_pcm_uframes_t pb_period = PERIOD;
-    if (open_and_configure(&ctx.playback, playback_dev, SND_PCM_STREAM_PLAYBACK, 2, RATE,pb_period) < 0) {
+    if (
+        open_and_configure(
+            &ctx.playback,
+             playback_dev, 
+             SND_PCM_STREAM_PLAYBACK, 
+             2, 
+             RATE,
+             pb_period) < 0
+        ) 
+    {
         return EXIT_FAILURE;
     }
 
@@ -41,7 +60,6 @@ int main(void){
     start_playback(&ctx);
 
     int err = snd_pcm_start(ctx.capture);
-
     if (err < 0){
         fprintf(stderr, "snd_pcm_start(capture) failed %s\n",snd_strerror(err));
         return EXIT_FAILURE;
@@ -61,7 +79,7 @@ int main(void){
     int muted[NUM_EFFECTS] = {0}; 
     int ticks = 0; 
     display_start(); 
-
+    // main control loop
     for(;;){
         controls_poll(&state); 
         for(int i = 0; i < NUM_EFFECTS; i++){

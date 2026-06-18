@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #define NUM_CHARS 22
+// start display
 int display_start(void){
     if(ssd1306_init(1)!=0){
         return -1; 
@@ -13,9 +14,10 @@ int display_start(void){
     ssd1306_oled_clear_screen();
     return 0; 
 }
-
+// names of each effect
 static const char* names[5] = {"VOL","REV","DIS", "TRE", "CHO"};
 
+// update the display
 void display_update(shared_state *s){
     for(int i = 0; i < NUM_EFFECTS; i++){
         int intensity = atomic_load(&s->intensity[i]) / 10;
@@ -38,6 +40,7 @@ void display_update(shared_state *s){
     }
 }
 
+// close display
 void display_close(void){
     ssd1306_oled_clear_screen();
     ssd1306_end(); 

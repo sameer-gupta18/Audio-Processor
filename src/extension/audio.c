@@ -66,7 +66,7 @@ void audio_loop(audio_ctx_t *ctx){
         for (snd_pcm_uframes_t i = 0; i < period; i++){
             ctx -> work_buf[i] = ctx -> in_buf[i] * IN_SCALE;
         }
-        // apply effects -- without smoothing for now
+        // apply effects -- additional smoothing unecessary 
         for (int e = 0; e < ctx->num_effects; e++){
             if (ctx->effects[e]){
                 int ticks = atomic_load(&ctx->shared->intensity[e]);

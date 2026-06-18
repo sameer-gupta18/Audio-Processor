@@ -9,7 +9,7 @@ typedef struct {
     int rate; 
     } tremolo_state;
 
-//n.b. the phase accumulator wraps back down to 0
+//the phase accumulator wraps back down to 0
 
 static void tremolo_reset(fx *self) {
      (void)self;
@@ -31,7 +31,7 @@ static void tremolo_process(fx *self, float *buf, int n, float amt){
         }
     }
 }
-
+// generate tremelo fx struct 
 fx *fx_tremolo_create(int sample_rate){
     fx *f = calloc(1, sizeof *f);
     tremolo_state *s = calloc(1, sizeof(tremolo_state));

@@ -7,6 +7,7 @@
 #define CHORUS_LFO_RATE 0.8f
 #define CHORUS_MODULATION_DEPTH 0.004f
 #define CHORUS_BASE_DELAY 0.015f
+#define CHORUS_SCALAR 2
 
 typedef struct {
     float  *buf;
@@ -16,12 +17,14 @@ typedef struct {
     float   sample_rate;
 } ChorusState;
 
+// reset chorus 
 static void chorus_reset(fx *self) {
     ChorusState *s = self->state;
     memset(s->buf, 0, s->buf_len * sizeof(float));
     s->write_idx = 0;
     s->phase = 0.0f;
 }
+
 
 static void chorus_process(fx *self, float *buf, int n, float amt) {
     ChorusState *s = self->state;
@@ -46,10 +49,11 @@ static void chorus_process(fx *self, float *buf, int n, float amt) {
         int idx0 = (int)read_pos;
         float frac = read_pos - (float)idx0;
         int idx1 = (idx0 + 1) % s->buf_len;
-
+        
         float r = s->buf[idx0] * (1.0f - frac) + s->buf[idx1] * frac;
 
-        buf[i] = x + amt * r * 2;
+        // linear interpolation 
+        buf[i] = x + amt * r * CHORUS_SCALAR;
         
         s->phase += phase_inc;
         if (s->phase >= 1.0f) s->phase -= 1.0f;
@@ -69,6 +73,7 @@ fx *fx_chorus_create(int sample_rate){
         return NULL;
     }
 
+    // worst case delay 
     float max_delay_s = CHORUS_BASE_DELAY + CHORUS_MODULATION_DEPTH + 0.001f;
     s->buf_len = (int)(max_delay_s * (float)sample_rate) + 2;
     s->buf = calloc(s->buf_len, sizeof(float));
@@ -77,7 +82,7 @@ fx *fx_chorus_create(int sample_rate){
         free(self);
         return NULL;
     }
-
+    
     s->write_idx = 0;
     s->phase = 0.0f;
     s->sample_rate = (float)sample_rate;
