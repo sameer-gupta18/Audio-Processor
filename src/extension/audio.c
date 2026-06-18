@@ -15,7 +15,6 @@
 // initialise audio context
 void ctx_init(audio_ctx_t *ctx){
     memset(ctx, 0, sizeof(*ctx));
-    // atomic_init(&ctx->shared->xruns, 0);
     ctx->effects[0] = fx_volume_create(RATE); 
     ctx->effects[1] = fx_reverb_create(RATE);
     ctx->effects[2] = fx_distortion_create(RATE); 
