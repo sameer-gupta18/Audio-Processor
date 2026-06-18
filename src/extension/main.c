@@ -1,6 +1,7 @@
 #include "audio.h"
 #include "alsa_setup.h"
 #include "controls.h"
+#include "display.h"
 #include "state.h"
 #include <alsa/pcm.h>
 #include <stdio.h>
@@ -58,6 +59,9 @@ int main(void){
     }
     int intensity[NUM_EFFECTS] = {0};
     int muted[NUM_EFFECTS] = {0}; 
+    int ticks = 0; 
+    display_start(); 
+
     for(;;){
         controls_poll(&state); 
         for(int i = 0; i < NUM_EFFECTS; i++){
@@ -69,10 +73,15 @@ int main(void){
         printf("DIST %3d. Muted %d\n", intensity[2]/10, muted[2]);
         printf("TREM %3d. Muted %d\n", intensity[3]/10, muted[3]);
         printf("CHOR %3d. Muted %d\n", intensity[4]/10, muted[4]);
-        
+        ticks++; 
+        if (ticks >= 100){
+            ticks = 0; 
+            display_update(&state); 
+        }
         usleep(1000); // sleep for one thousandth second
     }
     snd_pcm_close(ctx.capture);
     snd_pcm_close(ctx.playback);
+    display_close(); 
     return EXIT_SUCCESS;
 }

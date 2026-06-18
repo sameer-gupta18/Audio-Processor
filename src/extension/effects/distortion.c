@@ -13,7 +13,6 @@ static void distortion_process(fx *self, float *buf, int n, float amt){
     float drive = 1.0f + 19.0 * amt;
 
     float norm = tanhf(drive);
-
     for (int i = 0; i < n; i++){
         float x = buf[i];
         float wet = tanhf(drive * x) / norm;
