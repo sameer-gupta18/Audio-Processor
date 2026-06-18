@@ -15,6 +15,8 @@ void output(FILE* output, Assembled_Instruction* assembled_list, size_t count) {
     }
 
 }
+
+// Mask simm{n} values
 static uint32_t mask_simms(int32_t simm, uint8_t num){
     return (uint32_t)simm & ((1u << num)-1); 
 }
@@ -129,7 +131,7 @@ static uint32_t assemble_word(Assembled_Instruction *ins) {
 
         case BRANCH: {
             Branch_Instruction *br = &ins->instruction_data.branch;
-            uint32_t type_bits = 0;
+            uint32_t type_bits = 0; // First three bits of branch instruction
             switch (br->mode) {
                 case UNCOND: type_bits = 0u; break;
                 case COND: type_bits = 1u; break;
