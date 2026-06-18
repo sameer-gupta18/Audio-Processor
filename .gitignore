@@ -18,6 +18,7 @@
 *.img
 emulate
 assemble
+audiofx
 
 #ignore junk files from compiling Haskell code
 *.hi
@@ -34,3 +35,4 @@ assemble
 *.nav
 *.toc
 
+tools
