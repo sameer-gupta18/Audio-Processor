@@ -3,7 +3,8 @@
 #include <iso646.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "utils.h"
+#include "types.h"
+#define NUM_FIELDS 4
 
 typedef enum{
     DIRECTIVE,

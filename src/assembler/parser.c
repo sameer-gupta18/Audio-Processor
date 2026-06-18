@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include "parserIR.h"
 #include "symtable.h"
-#include "utils.h"
+#include "types.h"
 
 #define MAX_TOKENS 12
 

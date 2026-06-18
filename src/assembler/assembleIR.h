@@ -2,7 +2,7 @@
 #define ASSEMBLE_IR
 #include <stdint.h>
 #include <stdbool.h>
-#include "utils.h"
+#include "types.h"
 
 typedef enum {DPI, DPR, SDT, LOAD, BRANCH, SPECIAL} instruction_kind; 
 typedef enum {UNCOND, COND, REG_BRANCH} branch_type; 
