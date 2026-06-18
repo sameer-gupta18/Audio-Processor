@@ -5,12 +5,12 @@
 #include <ctype.h>
 #include "parserIR.h"
 #include "symtable.h"
-#include "utils.h"
+#include "types.h"
 
 #define MAX_TOKENS 12
 
+//sets a specific field in the instruction
 static void set_field(Parser_Instruction *inst, int i, Parser_Field f) {
-    //sets a specific field in the instruction
     if (i == 0) inst->f0 = f;
     else if (i == 1) inst->f1 = f;
     else if (i == 2) inst->f2 = f;
@@ -21,12 +21,13 @@ static void set_field(Parser_Instruction *inst, int i, Parser_Field f) {
     }
 }
 
+//strip comments from the assembly file
 static void strip_comments(char *line) {
     char *comment = strstr(line, "//");
     if (comment) *comment = '\0';
 }
 
-//remove whitespaces (leadig and trailing)
+//remove whitespaces (leading and trailing)
 static void trim(char *s) {
     char *start = s;
     while (isspace((unsigned char)*start)) start++;
@@ -232,6 +233,7 @@ static Parser_Field make_literal_addr_field(uint64_t addr) {
     return f;
 }
 
+//parse the address within the brackets
 static Parser_Field parse_bracket_address(char *token) {
     Parser_Field f;
     f.field = ADDRESS;
@@ -306,6 +308,7 @@ static Parser_Field parse_normal_field(char *token) {
     return make_literal_label_field(token);
 }
 
+//main parser function
 int parser(
     char *assembly_instruction,
     Sym_Table *symbol_table,

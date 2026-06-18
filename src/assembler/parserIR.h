@@ -3,7 +3,8 @@
 #include <iso646.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "utils.h"
+#include "types.h"
+#define NUM_FIELDS 4
 
 typedef enum{
     DIRECTIVE,
@@ -100,7 +101,7 @@ typedef struct{
         Parser_Address address;
         Parser_Register reg;
         Parser_Shift shift; 
-        int32_t immediate;  //Possibly 64 bit
+        int32_t immediate;
     } field_data;
 } Parser_Field;
 

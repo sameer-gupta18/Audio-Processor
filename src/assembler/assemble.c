@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "assert.h"
-#include "encode.h"
+#include "encode/encode.h"
 #include "output.h"
 #include "parserIR.h"
 #include "reader.h"

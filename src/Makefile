@@ -24,7 +24,14 @@ EMULATE_OBJS = \
 
 ASSEMBLE_OBJS = \
 	assembler/assemble.o \
-	assembler/encode.o \
+	assembler/encode/encode.o \
+	assembler/encode/handle_branch.o \
+	assembler/encode/handle_directive.o \
+	assembler/encode/handle_immediate.o \
+	assembler/encode/handle_register.o \
+	assembler/encode/handle_load_literal.o \
+	assembler/encode/handle_sdt.o \
+	assembler/encode/handle.o \
 	assembler/output.o \
 	assembler/parser.o \
 	assembler/reader.o \
