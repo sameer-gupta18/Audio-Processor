@@ -4,7 +4,7 @@
 #include <stdatomic.h>
 #include <stdio.h>
 
-#define NUM_CHARS 22
+#define NUM_CHARS 32
 // start display
 int display_start(void){
     if(ssd1306_init(1)!=0){
