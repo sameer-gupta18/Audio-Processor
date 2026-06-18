@@ -57,7 +57,7 @@ int open_and_configure(
     return 0; 
 }
 
-// two blank periods at the start
+// configuring software params
 int set_playback_startup(snd_pcm_t *pcm, snd_pcm_uframes_t period){
     snd_pcm_sw_params_t *sw; 
     snd_pcm_sw_params_alloca(&sw);
