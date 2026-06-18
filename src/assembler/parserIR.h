@@ -100,7 +100,7 @@ typedef struct{
         Parser_Address address;
         Parser_Register reg;
         Parser_Shift shift; 
-        int32_t immediate;  //Possibly 64 bit
+        int32_t immediate;
     } field_data;
 } Parser_Field;
 
