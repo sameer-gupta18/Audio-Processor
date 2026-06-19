@@ -6,6 +6,7 @@
 #include "parserIR.h"
 #include "reader.h"
 #include "symtable.h"
+#include "parser.h"
 #define INSTRUCTION_LIST_BUFFER 100
 #define ALLOCATE_IR_LIST(IR) calloc(n_lines+INSTRUCTION_LIST_BUFFER, sizeof(IR))
 
@@ -22,6 +23,7 @@ void cleanup(
     symtable_free(sym_table); 
     fclose(input);
     fclose(output); 
+    free_labels(); 
 }
 
 

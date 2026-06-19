@@ -6,8 +6,13 @@
 #include "parserIR.h"
 #include "symtable.h"
 #include "types.h"
+#include <stdlib.h>
 
 #define MAX_TOKENS 12
+#define MAX_LABELS 256
+
+static char* to_free[256]; 
+static uint8_t num_labels; 
 
 //sets a specific field in the instruction
 static void set_field(Parser_Instruction *inst, int i, Parser_Field f) {
@@ -221,6 +226,7 @@ static Parser_Field make_literal_label_field(char *label) {
     f.field_data.address.kind = LITERAL;
     f.field_data.address.address_data.literal.literal_kind = LIT_LABEL;
     f.field_data.address.address_data.literal.data.label = strdup(label);
+    to_free[num_labels++] = f.field_data.address.address_data.literal.data.label;
     return f;
 }
 
@@ -411,4 +417,10 @@ int parser(
     }
 
     return 1;
+}
+
+void free_labels(void){
+    for(int i = 0; i < num_labels; i++){
+        free(to_free[i]); 
+    }
 }

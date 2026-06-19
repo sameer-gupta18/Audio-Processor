@@ -13,3 +13,5 @@ int parser(
 );
 
 #endif
+
+void free_labels(void);
