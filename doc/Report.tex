@@ -1,21 +1,127 @@
-\documentclass[11pt]{article}
-
-\usepackage{fullpage}
+\documentclass{article}
+\usepackage[a4paper,margin=1in,top=0.3in]{geometry}
 
 \begin{document}
+\vspace*{-1em}
+\noindent{\large\bfseries Group 9 - Final Report}
 
-\title{Our Extension...}
-\author{TODO}
+\vspace{0.3em}
 
-\maketitle
 
-\section{Introduction}
+\section{Assembler Structure and Implementation}
+\subsection{Assembler Overview and Main Loop}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+Our assembler, like our emulator, is designed in a modular fashion, with shared types and functions separated into \verb|handle.(c/h)| and \verb|type.h| files. Following the spec, we designed the assembler to function in two-passes. The core of the assembler is our two internal representations of every instruction. The first IR, the 
+\verb|ParserIR|, formalises the raw instruction into a strict format - the mnemonic followed by two to four fields (address, immediate, literal or shift). The second IR, the \verb|AssemblerIR|, is a low-level bit-wise encoding, mimicking the structure stored in our emulator. 
+
+Briefly, our assembler first converts a raw instruction string into the ParserIR form, simultaneously stores the address for each label in a symbol table, and then converts into the AssemblerIR form, before outputing the raw binary to the output file. This is reflected in our main \verb|assemble.c| file, which allocates memory to the list of parsed instructions and assembled instructions. Our main function ensures that memory is accurately freed up as well to avoid memory leaks. Indeed, we have tested the assembler with valgrind and a small sample of test cases, and have fortunately detected 0 memory leaks. 
+
+\subsection{Symbol Table}
+
+Our symbol table is designed as a resizing \textbf{hashmap} of labels and addresses. The symbol table was designed to store the addresses of the labels found in the assembly code in the first pass, and it provides functions to insert, search, initialize, and free a symbol table. 
+
+The symbol table's main data structure is a linked list of Nodes (with each node storing a \verb|char*| for the label, a \verb|uint32_t| address, and a pointer to the next node.) The symbol table itself is a struct that stores an array of buckets, where each bucket is a pointer to the head of a linked list, and metadata for capacity/size. We hash a label with the commonly-used djb2 string hash function, and determine its bucket with: \verb|hash & (capacity-1)|. Resizing is triggered when a load factor of 0.75 is exceeded, and is conducted by doubling the number of buckets and rehashing each entry into its new bucket. 
+\subsection{Reader and Parser}
+
+The reader module performs the first pass of the assembler by reading the input file line by line and tracking the current instruction address, incrementing it by 4 bytes for each instruction except labels. It invokes our parser function on each line, allowing labels to be inserted into the symbol table with their corresponding addresses. The parser removes comments and white spaces, tokenizes  each instruction, identifies the mnemonic and operands, and converts them into a structured \verb|Parser_Instruction| intermediate representation, which stores the different fields, mnemonics, types, and characteristics of the instruction. It also handles ARMv8-specific features such as registers, immediates, shitfs, labels, and multiple memory addressing modes, preparing instructions for the encoding stage. 
+
+\subsection{Encode and Output}
+
+ The encode module forms the second pass of the assembler. It takes the list of \verb|Parser_Instruction| values produced by the parser, the completed symbol table, and an output array of \verb|Assembled_Instruction| values. It then loops through each parsed instruction and uses a large \verb|switch| statement on the mnemonic to decide which handler should encode it. Labels are skipped because they do not produced binary instructions.
+
+ The module seperates instruction families into different handlers. All instructions, based on their mnemonics, are dispatched to specific functions such as \verb|handle_register|, \verb|handle_immediate|, \verb|handle_sdt|, etc. This keeps the main encoder modular, while still reflecting the ARMv8 instruction categories.
+
+Branch and literal instructions use the symbol table to resolve labels. The helper functions \verb|handle_literal| either returns a numeric address directly or searches the symbol table. \verb|branch_offset| (used in branching) calculates the PC-relative offset in a 4-byte aligned ARMv8 architecture.
+
+Single data transfers are handled by identifying the addressing modes and then identifying the relevant fields. The other instructions simply involve reading and placing the parsed instruction fields in their corresponding assembled instruction fields, with the exception of directive where the directive address is stored in a \verb|Special_Instruction|.
+
+The encoder also supports aliases by rewriting them into their underlying ARMv8 instructions recursively. These rewritten instructions are then passed back through the normal encoding route, avoiding duplicate encoding logic. 
+
+The modular structure of our encoder mimics the ARMv8 ISA, allowing each instruction category to be implemented independently while sharing common helper functions through \verb|handle.h|.
+
+Finally, the assembled instructions are passed onto the output module, which reads the instruction fields and outputs them appropriately using bit masking techniques to give 23-bit machine-code words, complete with all of the predefined bits as well.
+
+By designing our assembler this way, we were able to debug and solve problems quite easily, and since we had done all the common modules first, everyone had a lot of clarity as to how their own module should function.
+
+\section{LED Implementation}
+
+Stage 3 of the project involved making an LED blink using an assembly program, which is then is compiled to an A64 binary using our assembler, and executed on a Raspberry Pi 3b. Our code first sets GPIO Pin 2 to output, by loading the immediate 0x40 (corresponding to 001 in bits 8 - 6) into the x0 using a  \verb|movz| instruction. We then store the address of the GPFSEL0 proxy memory address into the x1 register. We then use a \verb|str| instruction to load the literal into the GPSEL0 address. The main loop used a similar set of instructions, first loading the literal 0x4 (corresponding to a 1 in bit 2) to the GPSET0 proxy address. Then the program enters a delay loop where it is forced to continually decrement a very large number until it hits 1. Then we load 0x4 into the GPCLR0 address before delaying once again and re-entering the main loop. The physical configuration of the circuit was simple and used a red LED in conjunction with a 220$\Omega$ resistor. While our team found this section largely straightforward, we did not immediately realise that we cannot directly load large literals for addresses (such as 0x3f20) using \verb|movz| directly, since the immediate is only 16 bits wide. Rather, we had to use a \verb|lsl #16|, corresponding to a \verb|hw| field value of 01. 
+
+\section{Extension - Audio Effects}
+
+\subsection{Implementation and Applications}
+Our extension was inspired by Sameer’s interest in music, particularly the guitar. We decided to implement a real-time, programmable audio effects processor using a Raspberry Pi. Thus, our project could be divided into 3 broad subparts – hardware, I/O handling, and software (the actual audio processing).
+
+The hardware equipment included a microphone, speaker, five rotary encoders (one for each programmable effect), and the necessary cables to connect each part to the pi. We used a breadboard to aid the physical connections and improve the simplicity of the design.
+
+The I/O handling was done using the Raspberry Pi, SD card, and the Pi OS we installed using the Raspberry Pi Imager. Once all I/O devices were connected to the GPIO pins, we used our laptop to SSH into the raspberry pi, allowing us to communicate with all said devices. Subsequently, we were able to run our executable C file directly on the Pi.
+
+Understandably, the software part of our project was the most extensive. First, we initialised bit streams, one each with the microphone and speaker, with a sampling rate of 44100 Hz, allowing us to hear our input into the microphone in real time. Importantly, we prime the buffer with two periods of silence, delaying the output by 2 periods. This creates a continuos delay, allowing for latency in the audio input. This audio delay of 20 milliseconds is unnoticeable to a listener, but prevents a situation where the speaker has no audio to play and hence relies on a pause or click. The buffer can store an additional third period, which is used if there is any latency between the input and output audio. This additional buffer ensures that the recover function (explained in detial under structure) is not called unnecessarily.
+
+Once this was established, we read the input from the rotary encoders (essentially dials). We assigned each encoder to a different effect, which would modify the incoming audio stream and store it in the buffer. For example, the first dial simply affected the volume. Adjusting it would increase or decrease the amplitude of the incoming bits, producing a sound louder or softer than the original.
+
+Our project implements a variety of audio effects. The most primitive one is controlling the level of output volume, scaling from 0x to 2x. The next effect is  reverb, which imitated a room where sound waves bounce off walls and interfere with each other, creating a unique echo. We did this by outputting each new sample as a combination of the current input sample, and the delayed versions of previous input samples that were stored in the buffer. The other effects are: tremolo, which uses a sine wave modulator to create a quiver effect; distortion, which makes the output more noisy; and chorus, which layers audio layers to create a more rich sound. As an added feature, we implemented a mute button for each individual effect.  
+
+The default use-case of our project would, of course, be in the music industry, primarily in instruments such as the guitar or piano. It holds an advantage over electronic instruments by working with acoustics as easily. However a more niche, and perhaps more impactful use is in audio restoration for old recordings, songs, podcasts or interviews. This would require more functionality than has been currently implemented, but is an easily viable prospect for this project.
+
+\subsection{Extension System Configuration}
+
+The audio effect processing relies heavily on the API provided by the Linux audio subsystem, ALSA. The setup for ALSA and our audio configurations can be found in \verb|alsa_setup.c|. Our system designed was based on two threads (the audio thread and the control thread), each working on an infinite loop, each sharing some shared, mutable state. The audio thread, defined in \verb|audio.c|, is spun-off from main, and continuously handles the processing of the audio buffers and dispatching it to the output PCM stream. The control thread, defined in \verb|control.c|, and polled from main, continuously reads our effects inputs from the rotary encoders by interacting with the Pi's GPIO pins. Polls happen once every 1 millisecond, i.e. 1 tick. As can be deduced from the above, we need shared information between the threads; this is the values of the encoders at every sample/tick. We thus use atomic variables in order to have concurrent read/writes from this \verb|shared_state| struct, which stores the value each encoders. This needs to be written to by the control thread (depending to the GPIO pin input) and main/audio.c (to output the values to the log and actually apply the effects themselves).
+
+We also implemented a recover function in \verb|recover.c| which accounts for playback underruns (an event where the speaker has run out of samples from the buffer, often caused by an issue with the microphone) or capture overruns (an event where the buffer is full of samples which have not yet been outputted by the speaker, often caused by an issue with the speaker). Both events trigger an XRun, which is a state shared by all threads. Then, the audio is re-primed, with 2 periods of silent samples, and the audio processing pipeline resumes. 
+
+Our display controls for the LCD screen are present in \verb|display.c| where we display the current effects level normalized to a percentage. Finally, we defined all of our effects in \verb|effects/|, some of which were simply arithmetic functions with constant parameters over the normalized voltages (i.e.: distortion, tremolo, and volume), while some required the creation of additional structures and helpers, such as reverb where we utilized the musical properties of combing and all-pass to layer levels of audio with each other. Each effect was then mapped to its own set of GPIO pins and intensity indices, which was integrated within the processing layer. 
+
+
+\subsection{Challenges Faced}
+
+With all our group members having little to no experience in hardware and Raspberry Pi, we thought to challenge ourselves by using making the Pi central to our extension. Hence, we exhausted a significant portion of our time in its setup and learning to use the Pi OS. This included using SSH to access the Pi on our terminal, correctly wire up all the components correctly, and identify any faulty wires that could lead to headaches down the road.
+
+Our first setback came when we learnt that the Raspberry Pi does not read analogous inputs. This was key to our idea as we planned to use potentiometers as dials for each different effect. The option suggested to us was to additionally purchase a Digital Analogue Converter (DAC) to allow the Pi to read from our potentiometer dials. We decided to go down a cheaper path which required us to use rotary encoders. These differed from potentiometers as they did not store the position of the knob, rather if it was turning clockwise or anticlockwise. This was, unlike the potentiometer input, a digital input, and by storing the state of the knob in the programme, it allowed us to use a dial without a DAC. An unexpected feature of the rotary encoder was that it was also a push button that we used as a mute/reset button for the respective effects. 
+
+After breezing through the first effect, volume, we came to halt at reverb. Unlike volume, or even tremolo or distortion for that matter, reverb required in-depth research into sound architecture. We came upon Schroeder’s reverberator architecture which showed us how a digital algorithm for reverberation would look like. It involved comb filters, which introduced delayed and attenuated copies of the input signal. These signals were fed back into each other with decreasing amplitude, mimicking reflections in a room. Implementing this in C took up significantly more time than the remaining effects, and in the end produced the desired effect.
+
+Our last hurdle came towards the finish line, when we decided to implement an OLED screen to display the intensity and state (muted or not) of each effect. However, our hardware was not functional, and with a new one not being available in time, we were forced to scrap the idea.
+
+
+\subsection{Testing and Effectiveness}
+
+Unlike conventional software systems, we could not rely on traditional testing to validate our extension. Hence, we decided to divide to separately test the components of our system – the hardware, software, and efficacy. 
+
+The hardware tests were implemented using the terminal. After attaching all the I/O devices, we first ensured each device was detected by the Pi. Then, we tested the individual devices. Starting with the microphone and speaker, we established that speaking into the former would output from the latter. To test the rotary encoders, we printed the stored intensity of each effect as well as its state (muted or not) at regular intervals, and checked whether rotating the dials would produce a change in the printed value. A particular frustrating part of these tests were when we used faulty jumper cables. Such cables were hard to identify, and often required us to change all cables until we found (and replaced) the faulty one.
+
+The software tests were twofold – a test for memory leaks, and a simple test to see if the audio was inputted, modified and outputted. Importantly, this phase did not account for whether the audio processing was technically sound. These tests went rather smoothly, the only hiccup occurring when tremolo and chorus seemed not to modify the audio in any way. This was, however, quickly found to be a hardware issue, and was promptly resolved.
+
+Testing the efficacy of the audio processing went beyond traditional testing, as it is both perceptual and subjective. Therefore, we employed help from other friends to listen to and play with the programmable dials. We asked each tester to listen to a music track and, after we adjusted the different effects, ask them what they could identify in the processed audio. This allowed us to gain valuable feedback, which we used to modify the effects. For example, the tremolo and distortion effects made the input audio almost unrecognisable when set to the maximum intensity. We fixed this by reducing the scaling factor to a third of the original. Additionally, we realised that the chorus effect was virtually unrecognisable, even when set to maximum intensity. This was similarly fixed by increasing the scaling factor. 
+
+
+\section{Group Reflection}
+
+Across the development of our overall project, our team maintained strong collaboration and delivered consistent progress under a fairly tight deadline. We had regular discussion over WhatsApp where we notified each other on changes made to code, commits, scheduling meetings, advising each other with corrections to each other’s code, etc. which made everything completely transparent for every member of the team. This clear communication made it easier for everyone to complete their respective tasks while having external commitments to address. Setting achievable deadlines for each part ensured that each member had enough time to complete each task, and some leeway was given to members who could not quite finish by the given day. 
+
+
+This project was invaluable to all of us as we gained both technical and soft skills. Starting to learn C merely a couple weeks prior, and this being our first project using the language, came with its challenges. There was a steep learning curve, especially with the scale of features we wanted to implement with our extension. We also learned a lot about using Git to organise the project, especially how to assign separate branches for each person.
+
+We split work between ourselves and it was very clear after decomposing each part into separate files which certain members would work on. Git commit messages were well organised with text tags like feat:, fix:, refactor:, etc. clearly showing the objective achieved by each commit and no merge conflicts occurred.
+
+Looking back, we could have improved the testing process of our assembler and emulator by testing smaller features individually at each stage of the project, rather than all at once. This could have reduced the time we spent debugging as we would have been able to isolate errors to smaller sections of the code. We improved upon this while working on our extension, by testing individual effects the moment we implemented them, before the project as a whole.
+
+\section{Individual Reflections}
+
+\subsection{Aditya}
+
+
+This project has been very important for me for the several skills I have learned throughout the last few weeks. My communication and teamwork skills have greatly improved thanks to the clarity that was showed from my teammates in terms of the responsibilities that each team member had, and these skills will help me greatly in future projects. The heavy exposure to the C Programming Language will hold be in good stead for the future where I will most likely need to use it again. I enjoyed working in a group setting where everyone was equal and tasks were spread out effectively between members and the friendly nature of asking anyone else for help along with the relaxed deadlines for each part which made me feel comfortable for an otherwise challenging project. From creating an emulator and assembler I learned a lot about architecture which was a topic I struggled learning during the lectures earlier in the year and it was quite intriguing to see how such complex software programs could be created using just one language. It was also very fun to work with the Raspberry Pi, which I had already a had prior experience with, for making an LED blink (Part 3) and especially for the exciting extension which was an audio processor. This extension was very rewarding as it was a good experience to work on a project which involved both software and hardware with the Raspberry Pi which had libraries that helped us for the audio processing code and it was very nice to see at the end how well our idea was conceived and how it worked with it being quite simple to just turn dials for certain effects like volume and reverb on the input audio. Furthermore, exposure to Git commits was invaluable as it was another skill that will be very useful in the future and I learned over the course of the project when to pull and push to or from a branch, how to checkout or create a branch and properly commit any changes I made to my code. 
+
+\subsection{Anish}
+
+Overall, I have found our C group project to be a memorable and rewarding process. Reflecting on our group's progress, I find the emulator to be a difficult section. Although conceptually simpler than the latter stages, we found it difficult to figure out how exactly we were supposed to get started. There was also the rather steep learning-curve of using git within group and maintaining an ever growing codebase. However, after a few group discussions and delegating work across our members, the rest of Stage 1 was fairly simple. The assembler was more tricky and fiddly compared to the emulator, and it required us to give careful consideration to our structures and implementations. My favourite stage, however, was the Extension. Inspired by the hardware flavour of Stage 3, we decided to build a custom audio mixer using the Pi. It was incredible to see it coming to life before us, and, before we knew it, we had a piece of machinery that could make some very cool sounds. 
+
+\subsection{Pratyush}
+There is always more to learn when working with other people. At the end of the group project, I have found myself more confident to work in a team, able convey and listen to ideas, and essentially, I’ve gained far more technical skills than I would have wrought alone. Starting with the emulator, it was my first deep dive into C programming, and after the initial struggle of learning a new language, I found myself deeply enjoying the process. In addition to learning C and how to use Github, I learnt how my friends worked, their strengths, and how best I could utilise my skillset to complement theirs. Basking in the success of our emulator and our debugging, the assembler proved more complicated. Its debugging took a lot more time than expected, forcing us to delay our planned deadlines. However, I was glad to see that it did not affect our camaraderie or team work for further phases. Phase 3 was much simpler, but it forced me to improve on my assembly coding, something I felt lacking in. I was, however, pleased to have retained some knowledge in hardware, particularly I/O device connections that I had previously learnt on an Arduino. I brought this into phase 4, with our extension, which used significant hardware to create a programmable audio processor. This extension not only taught me a lot about bit stream manipulation, but also about music and audio mixing, particularly digital algorithms that can simulate real-life auditory sensations.
+
+\subsection{Sameer}
+
+I think that this C project for me has been nothing short of an amazing learning opportunity. I have primarily worked alone on projects in the past, and for the first time, I was exposed to a healthy group setting, and I have come to realise what is possible if everyone can work equally and diligently as a group. I have also gained a lot of technical skills, having coded in a language that I only started learning a couple of weeks back. I also got to learn a lot about Git and collaborative software engineering, including modularization, good good practices, and system design. The emulator was challenging because of how difficult it was to get going. Although conceptually it is easier than the assembler, having just a blank directory and being expected to build an emulator was a daunting challenge. However, with a lot of critical thinking and collaborative brainstorming, we were able to derive a set of structures and modules. While working on the emulator, I came to realize just how enjoyable programming in C can be, while also getting insight into bottom-up programming - the foundation of how we approached the emulator as a whole. The assembler was technically more challenging for sure, but it felt much more doable. Even though I decided to take on the entire encoding module on my shoulders, working on the encoders felt exciting rather than confusing, as I could spend time and actually figure out ways to design and optimize my code - a feeling which I am sure will help me in the future as well. It definetly took more time to debug, but it was also relieving to see test cases pass one by one. The Raspberry Pi was honestly not that much work, as it just involved writing one assembly file, but it acted as a good testament of our emulator and assembler functionality. Finally, the extension was something I was quite excited about, as it was a project quite close to my heart. Building a rudimentary guitar processor was both fun and educational, as I got to experiment with different tonalities and hypertuning of sounds while building something that I can actually use, but also learn more about signal processing, involving thread-safe audio buffers stored as float arrays, signal processing techniques including reverberation using combing and tremolo using sinusodial morphing. I also got great insight into the world of hardware, something I had not really explored before. It was particularly fun learning more about the breadboard and raspberry pi capabilities. Having a physical product in front of me was particularly satisfying as well. 
 
 \end{document}
