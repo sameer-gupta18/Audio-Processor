@@ -75,29 +75,40 @@ int main(void){
         fprintf(stderr, "Audio thread failed!");
         return EXIT_FAILURE; 
     }
-    int intensity[NUM_EFFECTS] = {0};
-    int muted[NUM_EFFECTS] = {0}; 
     int ticks = 0; 
     display_start(); 
+    static const char *names[5] = {"VOL", "REV", "DIS", "TRM", "CHO"};
     // main control loop
-    for(;;){
+        for(;;){
         controls_poll(&state); 
-        for(int i = 0; i < NUM_EFFECTS; i++){
-            intensity[i] = atomic_load(&state.intensity[i]);
-            muted[i] = atomic_load(&state.muted[i]);
-        }
-        printf("VOL %3d. Muted %d\n", intensity[0]/10, muted[0]);
-        printf("REV %3d. Muted %d\n", intensity[1]/10, muted[1]);
-        printf("DIST %3d. Muted %d\n", intensity[2]/10, muted[2]);
-        printf("TREM %3d. Muted %d\n", intensity[3]/10, muted[3]);
-        printf("CHOR %3d. Muted %d\n", intensity[4]/10, muted[4]);
-        ticks++; 
-        if (ticks >= 100){
-            ticks = 0; 
+        if (ticks % 100 == 0){
+            for(int i = 0; i < NUM_EFFECTS; i++){
+                int curr_intensity = atomic_load(&state.intensity[i]) / 10;
+                int bar_intensity = curr_intensity / 10;
+                int curr_muted = atomic_load(&state.muted[i]); 
+                char res[11]; 
+                for(int j = 0; j < 10; j++){
+                    if(j < bar_intensity){
+                        res[j] = '#';
+                    } else{
+                        res[j] = '-'; 
+                    }
+                }
+                res[10] = '\0';
+                printf("%s [%s] %3d%% %s", names[i], res, curr_intensity, curr_muted ? "M " : "  ");
+            }
+            putchar('\n');
             display_update(&state); 
+        }
+
+        ticks++; 
+        // prevent ticks overflow
+        if (ticks >= 10001){
+            ticks = 0; 
         }
         usleep(1000); // sleep for one thousandth second
     }
+
     snd_pcm_close(ctx.capture);
     snd_pcm_close(ctx.playback);
     display_close(); 

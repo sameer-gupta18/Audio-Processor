@@ -9,8 +9,8 @@
 #define NUM_ALLPASS 4
 
 // random numbers that are non multiples, non powers of two, and not evenly spaced
-static const int comb_lengths[8] = {1116,1188,1277,1356,1422,1491,1557, 1617};
-static const int all_pass_lengths[4] = {556,441,341,225};
+static const int comb_lengths[NUM_COMBS] = {1116,1188,1277,1356,1422,1491,1557, 1617};
+static const int all_pass_lengths[NUM_ALLPASS] = {556,441,341,225};
 
 //comb structure
 typedef struct {
