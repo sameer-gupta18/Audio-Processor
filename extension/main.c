@@ -11,8 +11,6 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#define ESC_UP   "\033[F"
-#define ESC_CLR  "\033[K"
 #define RATE 44100
 
 int main(void){
@@ -80,17 +78,10 @@ int main(void){
     int ticks = 0; 
     display_start(); 
     static const char *names[5] = {"VOL", "REV", "DIS", "TRM", "CHO"};
-    int first_print = 1; 
     // main control loop
-    for(;;){
+        for(;;){
         controls_poll(&state); 
         if (ticks % 100 == 0){
-            if (!first_print) {
-                for (int i = 0; i < 5; i++){
-                    fputs(ESC_UP, stdout);
-                } 
-            }
-            first_print = 0;
             for(int i = 0; i < NUM_EFFECTS; i++){
                 int curr_intensity = atomic_load(&state.intensity[i]) / 10;
                 int bar_intensity = curr_intensity / 10;
@@ -104,8 +95,9 @@ int main(void){
                     }
                 }
                 res[10] = '\0';
-                printf("%s [%s] %3d%% %s", names[i], res, curr_intensity, curr_muted ? "Mute" : " ");
+                printf("%s [%s] %3d%% %s", names[i], res, curr_intensity, curr_muted ? "M " : "  ");
             }
+            putchar('\n');
             display_update(&state); 
         }
 
@@ -116,6 +108,7 @@ int main(void){
         }
         usleep(1000); // sleep for one thousandth second
     }
+
     snd_pcm_close(ctx.capture);
     snd_pcm_close(ctx.playback);
     display_close(); 
