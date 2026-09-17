@@ -1,4 +1,4 @@
-# audiofx
+# Guitar Audio Processor
 
 
 <p align="center">
